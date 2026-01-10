@@ -42,26 +42,37 @@ RESTRAINT_ALPHA = {
 }
 
 # === CHANGE 1: Add a calibration/version tag so your backend & Gemini know what you used
-CALIBRATION_SET = "thor_05f_ais3plus_thorax_irtracc_xy_v1"
+CALIBRATION_SET = "thor_05f_ais3plus_thorax_irtracc_xy_v1_ncap_head_neck_kth_femur_v1"
 
 # Risk curve parameters for injury probabilities
-# Supports two forms:
-#   (A) "X50"+"k"  : P = 1/(1+exp(-k*(X-X50)))
-#   (B) "beta0"+"beta1": P = 1/(1+exp(-(beta0+beta1*X)))
+# Supported forms:
+#   (A) "X50"+"k"                : P = 1/(1+exp(-k*(X-X50)))                     (legacy)
+#   (B) "beta0"+"beta1"          : P = 1/(1+exp(-(beta0+beta1*X)))               (logistic)
+#   (C) "form"="probit_lognormal": P = Phi((ln(X)-mu)/sigma)                     (probit on log)
+#
+# === CHANGE 16: Replace placeholder head/neck/femur curves with published equation forms
 RISK_CURVES = {
-    # NOTE: head/neck/femur remain placeholders until you swap in published/specific curves.
-    "head_HIC15": {
-        "X50": 700.0,   # placeholder
-        "k": 0.006      # placeholder
-    },
-    "neck_Nij": {
-        "X50": 1.0,     # placeholder
-        "k": 2.5        # placeholder
+    # === CHANGE 17: Head AIS3+ risk (published probit on ln(HIC15))
+    # P(AIS3+) = Phi((ln(HIC15) - mu) / sigma)
+    "head_HIC15_AIS3plus_probit": {
+        "form": "probit_lognormal",
+        "mu": 7.45231,
+        "sigma": 0.73998,
+        "units": "HIC15",
+        "notes": "Head AIS3+ risk from probit on ln(HIC15)."
     },
 
-    # === CHANGE 2: Chest risk now uses THOR-05F AIS3+ thorax IRF (logistic regression)
+    # === CHANGE 18: Neck AIS3+ risk (published logistic on Nij)
+    # P(AIS3+) = 1/(1+exp(-(beta0 + beta1*Nij)))
+    "neck_Nij_AIS3plus": {
+        "beta0": -3.227,
+        "beta1": 1.969,
+        "units": "Nij",
+        "notes": "Neck AIS3+ risk from logistic model on Nij."
+    },
+
+    # === CHANGE 2: Chest risk uses THOR-05F AIS3+ thorax IRF (logistic regression)
     # We treat X as IR-TRACC max deflection in mm (proxy-derived in this code).
-    # P(AIS3+) = 1/(1 + exp(-(beta0 + beta1*X_mm)))
     "thorax_irtracc_max_deflection_mm_AIS3plus": {
         "beta0": -4.9522,   # THOR-05F matched-pair, X-Y resultant
         "beta1": 0.1657,    # THOR-05F matched-pair, X-Y resultant
@@ -69,23 +80,31 @@ RISK_CURVES = {
         "notes": "THOR-05F AIS3+ (>=3 rib fractures) IRF using max IR-TRACC deflection (X-Y resultant)."
     },
 
-    # Keep these only for reporting / debugging; we will not use chest_A3ms for risk by default anymore.
+    # Keep this only for reporting / debugging; we do NOT use chest_A3ms for risk by default.
     "chest_A3ms": {
-        "X50": 60.0,    # placeholder
-        "k": 0.08       # placeholder
+        "X50": 60.0,    # placeholder (diagnostic only)
+        "k": 0.08,      # placeholder (diagnostic only)
+        "units": "g",
+        "notes": "Diagnostic-only placeholder; not combined in current calibration set."
     },
 
-    # We keep femur as placeholder
-    "femur_load": {
-        "X50": 10000.0, # placeholder
-        "k": 0.0003     # placeholder
+    # === CHANGE 19: Femur/KTH AIS2+ risk (published logistic on femur force for 5th percentile female)
+    # NOTE: This is AIS2+ (KTH), not AIS3+. We keep it as a proxy until you adopt an AIS3+ lower-extremity IRF.
+    # One common published form: P(AIS2+) = 1/(1 + exp(beta0 + beta1 * FemurForce_kN))
+    "femur_force_kN_AIS2plus_proxy": {
+        "beta0": 5.7949,
+        "beta1": -0.7619,
+        "units": "kN",
+        "notes": "Femur/KTH AIS2+ proxy risk using logistic model on femur axial force (kN)."
     }
 }
 
-# Neck intercepts for Nij calculation (dummy-dependent, using 50th percentile male as default)
+# Neck intercepts for Nij calculation
+# === CHANGE 20: Replace placeholder intercepts with HIII 5th percentile female intercepts (still a proxy Nij model)
+# NOTE: True Nij requires mode-specific intercepts (tension/compression & flexion/extension). This file uses a simplified proxy.
 NECK_INTERCEPTS = {
-    "F_int": 6806.0,   # N (axial force intercept) - placeholder for true Nij mode handling
-    "M_int": 310.0     # N·m (bending moment intercept) - placeholder
+    "F_int": 4287.0,   # N (HIII 5F)
+    "M_int": 155.0     # N·m (HIII 5F flexion intercept)
 }
 
 # Belt stiffness approximation
@@ -107,13 +126,13 @@ class CrashInputs:
                  gender: str = "female",        # === CHANGE 3: default to female since you target THOR-05F
                  is_pregnant: bool = False,
 
-                 # NEW: Seating position parameters (affect injury risk)
+                 # Seating position parameters (affect injury risk)
                  seat_distance_from_wheel: float = 0.30,  # m (distance from steering wheel/dash)
                  seat_recline_angle: float = 25.0,        # degrees from vertical (0=upright, 45=reclined)
                  seat_height_relative_to_dash: float = 0.0,  # m (negative=below, positive=above)
                  torso_length: float = None,              # m (if None, scaled from height)
 
-                 # NEW: Occupant-specific vulnerabilities
+                 # Occupant-specific vulnerabilities
                  neck_strength: str = "average",  # "weak", "average", "strong" (age/fitness dependent)
 
                  # Restraint systems
@@ -176,10 +195,8 @@ class CrashInputs:
         Adjusted slightly for gender.
         """
         base_mass = self.occupant_mass * HEAD_MASS_FRACTION
-
         if self.gender == "female":
             base_mass *= 0.95
-
         return base_mass
 
     def _calculate_torso_mass(self) -> float:
@@ -189,10 +206,8 @@ class CrashInputs:
         Increased during pregnancy.
         """
         base_mass = self.occupant_mass * TORSO_MASS_FRACTION
-
         if self.is_pregnant:
             base_mass *= 1.15
-
         return base_mass
 
     def _calculate_leg_mass(self) -> float:
@@ -203,9 +218,7 @@ class CrashInputs:
         return self.occupant_mass * LEG_MASS_FRACTION
 
     def _calculate_neck_lever_arm(self) -> float:
-        """
-        Calculate neck moment arm scaled by height.
-        """
+        """Calculate neck moment arm scaled by height."""
         height_scaling = self.occupant_height / REFERENCE_HEIGHT
         return REFERENCE_NECK_LEVER_ARM * height_scaling
 
@@ -224,7 +237,59 @@ class BaselineRiskCalculator:
 
     def __init__(self, inputs: CrashInputs):
         self.inputs = inputs
-        self.results = {}
+        self.results: Dict[str, Any] = {}
+
+    # === CHANGE 21: add normal CDF helper (needed for probit head curve)
+    @staticmethod
+    def _normal_cdf(x: float) -> float:
+        """Standard normal CDF Phi(x) using erf (no SciPy dependency)."""
+        return 0.5 * (1.0 + math.erf(x / math.sqrt(2.0)))
+
+    # === CHANGE 22: replace _logistic_risk with a general _risk() supporting probit + logistic + legacy
+    def _risk(self, criterion: str, value: float) -> float:
+        """
+        Supported forms:
+          - form="probit_lognormal": P = Phi((ln(X)-mu)/sigma)
+          - beta0/beta1:            P = 1/(1+exp(-(beta0 + beta1*X)))
+          - X50/k:                  P = 1/(1+exp(-k*(X-X50)))  (legacy)
+        """
+        params = RISK_CURVES[criterion]
+
+        # Probit on log (used for head AIS3+ vs HIC15)
+        if params.get("form") == "probit_lognormal":
+            X = float(value)
+            if X <= 0.0:
+                return 0.0
+            mu = float(params["mu"])
+            sigma = float(params["sigma"])
+            z = (math.log(X) - mu) / sigma
+            # clamp tails for numerical stability
+            if z > 8.0:
+                return 1.0
+            if z < -8.0:
+                return 0.0
+            return float(self._normal_cdf(z))
+
+        # Logistic regression form
+        if "beta0" in params and "beta1" in params:
+            beta0 = float(params["beta0"])
+            beta1 = float(params["beta1"])
+            z = beta0 + beta1 * float(value)
+            if z > 50.0:
+                return 1.0
+            if z < -50.0:
+                return 0.0
+            return 1.0 / (1.0 + math.exp(-z))
+
+        # Legacy X50/k form
+        X50 = float(params["X50"])
+        k = float(params["k"])
+        exponent = -k * (float(value) - X50)
+        if exponent > 50.0:
+            return 0.0
+        if exponent < -50.0:
+            return 1.0
+        return 1.0 / (1.0 + math.exp(exponent))
 
     def calculate_all(self) -> Dict[str, Any]:
         """
@@ -239,14 +304,13 @@ class BaselineRiskCalculator:
         a_peak = self._compute_peak_acceleration(delta_v, pulse_duration)
 
         # Step 3: Generate acceleration time history
-        time_array, a_vehicle, a_vehicle_g = self._generate_crash_pulse(
-            a_peak, pulse_duration)
+        time_array, a_vehicle, a_vehicle_g = self._generate_crash_pulse(a_peak, pulse_duration)
 
         # Step 4: Map to occupant loads
         alpha = self._get_restraint_transfer_factor()
         a_occ = alpha * a_vehicle
         a_occ_g = a_occ / GRAVITY
-        a_occ_peak = np.max(a_occ)
+        a_occ_peak = float(np.max(a_occ))
 
         # Step 5: Compute injury criteria
         hic15 = self._compute_hic15(time_array, a_occ_g)
@@ -257,25 +321,25 @@ class BaselineRiskCalculator:
         chest_deflection_m = self._compute_chest_deflection(a_occ_peak)
         chest_deflection_mm = chest_deflection_m * 1000.0  # === CHANGE 4: explicit mm value for IRF
 
-        femur_load = self._compute_femur_load(a_occ_peak)
+        femur_load_N = self._compute_femur_load(a_occ_peak)
+        femur_force_kN = femur_load_N / 1000.0  # === CHANGE 23: published femur proxy curve uses kN
 
         # Step 6: Convert to injury probabilities
-        p_head = self._logistic_risk("head_HIC15", hic15)
-        p_neck = self._logistic_risk("neck_Nij", nij)
+        # === CHANGE 24: head/neck now use published curve keys + _risk()
+        p_head = self._risk("head_HIC15_AIS3plus_probit", hic15)
+        p_neck = self._risk("neck_Nij_AIS3plus", nij)
 
-        # === CHANGE 5: Chest probability uses THOR-05F thorax IRF on deflection_mm
-        p_thorax = self._logistic_risk("thorax_irtracc_max_deflection_mm_AIS3plus", chest_deflection_mm)
+        # Chest probability uses THOR-05F thorax IRF on deflection_mm
+        p_thorax = self._risk("thorax_irtracc_max_deflection_mm_AIS3plus", chest_deflection_mm)
 
         # Optional: keep chest accel probability as diagnostic only (NOT combined by default)
-        p_chest_accel_diag = self._logistic_risk("chest_A3ms", chest_a3ms)
+        p_chest_accel_diag = self._risk("chest_A3ms", chest_a3ms)
 
-        p_femur = self._logistic_risk("femur_load", femur_load)
+        # === CHANGE 25: femur uses published AIS2+ proxy curve key (kN units)
+        p_femur = self._risk("femur_force_kN_AIS2plus_proxy", femur_force_kN)
 
         # Step 7: Combine into overall risk
-        # === CHANGE 6: Use p_thorax as the chest/thorax channel in the combined probability
-        p_baseline = self._combine_injury_probabilities(
-            [p_head, p_neck, p_thorax, p_femur]
-        )
+        p_baseline = self._combine_injury_probabilities([p_head, p_neck, p_thorax, p_femur])
         risk_score = p_baseline * 100.0
 
         # Package results
@@ -299,23 +363,23 @@ class BaselineRiskCalculator:
             # Keep A3ms (diagnostic)
             "chest_A3ms_g": round(chest_a3ms, 1),
 
-            # === CHANGE 8: store both m + mm; mm is what the THOR-05F IRF uses
+            # store both m + mm; mm is what the THOR-05F IRF uses
             "thorax_deflection_proxy_m": round(chest_deflection_m, 5),
             "thorax_irtracc_max_deflection_proxy_mm": round(chest_deflection_mm, 1),
 
-            "femur_load_kN": round(femur_load / 1000, 1),
+            # femur force reporting (keep kN key name for UI)
+            "femur_load_kN": round(femur_force_kN, 1),
 
             # Injury probabilities
             "P_head": round(p_head, 4),
             "P_neck": round(p_neck, 4),
-
-            # === CHANGE 9: Thorax probability (AIS3+) is now the “chest channel”
             "P_thorax_AIS3plus": round(p_thorax, 4),
 
             # Diagnostic only
             "P_chest_A3ms_diag": round(p_chest_accel_diag, 4),
 
-            "P_femur": round(p_femur, 4),
+            # NOTE: femur proxy is AIS2+ (KTH proxy), not AIS3+. Keep label explicit.
+            "P_femur_AIS2plus_proxy": round(p_femur, 4),
 
             # Overall risk
             "P_baseline": round(p_baseline, 4),
@@ -352,17 +416,19 @@ class BaselineRiskCalculator:
                 f"Pulse shape: half-sine over {pulse_duration*1000:.1f} ms",
                 f"Restraint model: {self._get_restraint_type_string()}",
                 f"Biomechanical parameters scaled from occupant mass ({self.inputs.occupant_mass} kg) and height ({self.inputs.occupant_height} m)",
-                "Neck loads estimated from head inertia (no direct sensor) (Nij is a proxy here; not full sign/mode-based Nij)",
-                f"Neck injury adjusted for '{self.inputs.neck_strength}' neck strength and {self.inputs.seat_recline_angle}° recline",
 
-                # === CHANGE 10: explicitly say thorax IRF + proxy mapping
+                # Neck modeling caveat
+                "Neck loads estimated from head inertia (no direct sensor). Nij here is a proxy (not full sign/mode-based Nij).",
+                f"Neck Nij proxy normalized using HIII 5F intercepts and adjusted for '{self.inputs.neck_strength}' neck strength and {self.inputs.seat_recline_angle}° recline.",
+
+                # Thorax curve caveat
                 "Thorax AIS3+ probability uses THOR-05F IR-TRACC max deflection IRF (X-Y resultant) on a proxy deflection signal (spring model).",
                 "Chest 3ms acceleration is computed but treated as diagnostic only in this calibration set.",
 
-                f"Seat distance from wheel: {self.inputs.seat_distance_from_wheel} m (optimal: 0.25-0.30 m)",
-                "Femur load from effective leg mass",
+                # Femur caveat
+                "Femur probability uses a published AIS2+ (KTH) proxy curve on femur axial force (kN); not AIS3+.",
 
-                "Head/neck/femur risk curves are still placeholders in this file; replace with published AIS3+ curves and/or THOR-05F equivalents when available."
+                f"Seat distance from wheel: {self.inputs.seat_distance_from_wheel} m (optimal: 0.25-0.30 m)",
             ]
         }
 
@@ -386,13 +452,15 @@ class BaselineRiskCalculator:
         return PULSE_DURATIONS.get(self.inputs.crash_side, 0.10)
 
     def _compute_peak_acceleration(self, delta_v: float, T: float) -> float:
-        """
-        Half-sine pulse: a_peak = (π/2) * (Δv/T)
-        """
+        """Half-sine pulse: a_peak = (π/2) * (Δv/T)"""
         return (math.pi / 2.0) * (delta_v / T)
 
-    def _generate_crash_pulse(self, a_peak: float, T: float,
-                              sample_rate: int = 10000) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def _generate_crash_pulse(
+        self,
+        a_peak: float,
+        T: float,
+        sample_rate: int = 10000
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         n_samples = int(T * sample_rate)
         time_array = np.linspace(0, T, n_samples)
         a_vehicle = a_peak * np.sin(math.pi * time_array / T)
@@ -440,18 +508,18 @@ class BaselineRiskCalculator:
     # ================== Step 4: Injury Criteria Calculation ==================
 
     def _compute_hic15(self, time_array: np.ndarray, a_g: np.ndarray) -> float:
-        dt = time_array[1] - time_array[0]
+        dt = float(time_array[1] - time_array[0])
         max_window_samples = int(0.015 / dt)
 
         hic_max = 0.0
         for i in range(len(a_g) - 1):
             for j in range(i + 1, min(i + max_window_samples + 1, len(a_g))):
-                t1 = time_array[i]
-                t2 = time_array[j]
+                t1 = float(time_array[i])
+                t2 = float(time_array[j])
                 duration = t2 - t1
                 if duration <= 0.0 or duration > 0.015:
                     continue
-                avg_a = np.mean(a_g[i:j])
+                avg_a = float(np.mean(a_g[i:j]))
                 hic_value = duration * (avg_a ** 2.5)
                 if hic_value > hic_max:
                     hic_max = hic_value
@@ -474,12 +542,12 @@ class BaselineRiskCalculator:
         return nij_base * strength_multipliers.get(self.inputs.neck_strength, 1.0)
 
     def _compute_chest_a3ms(self, time_array: np.ndarray, a_g: np.ndarray) -> float:
-        dt = time_array[1] - time_array[0]
+        dt = float(time_array[1] - time_array[0])
         window_samples = max(1, int(0.003 / dt))  # === CHANGE 11: guard against window_samples=0
 
         max_avg = 0.0
         for i in range(len(a_g) - window_samples):
-            avg_a = np.mean(a_g[i:i + window_samples])
+            avg_a = float(np.mean(a_g[i:i + window_samples]))
             if avg_a > max_avg:
                 max_avg = avg_a
         return max_avg
@@ -507,46 +575,12 @@ class BaselineRiskCalculator:
     def _compute_femur_load(self, a_occ_peak: float) -> float:
         return self.inputs.leg_mass * a_occ_peak
 
-    # ================== Step 5: Injury Probability Conversion ==================
-
-    def _logistic_risk(self, criterion: str, value: float) -> float:
-        """
-        Supports:
-          A) X50/k form:      P = 1/(1+exp(-k*(X-X50)))
-          B) beta0/beta1 form P = 1/(1+exp(-(beta0+beta1*X)))
-        """
-        params = RISK_CURVES[criterion]
-
-        # === CHANGE 12: support published beta0/beta1 curves (THOR-05F thorax IRF)
-        if "beta0" in params and "beta1" in params:
-            beta0 = float(params["beta0"])
-            beta1 = float(params["beta1"])
-            z = beta0 + beta1 * float(value)
-            # clamp for numerical stability
-            if z > 50:
-                return 1.0
-            if z < -50:
-                return 0.0
-            return 1.0 / (1.0 + math.exp(-z))
-
-        # Fallback: original X50/k style
-        X50 = float(params["X50"])
-        k = float(params["k"])
-        exponent = -k * (float(value) - X50)
-
-        if exponent > 50:
-            return 0.0
-        elif exponent < -50:
-            return 1.0
-
-        return 1.0 / (1.0 + math.exp(exponent))
-
     # ================== Step 6: Overall Risk Combination ==================
 
     def _combine_injury_probabilities(self, probabilities: List[float]) -> float:
         p_no_injury = 1.0
         for p in probabilities:
-            p_no_injury *= (1.0 - p)
+            p_no_injury *= (1.0 - float(p))
         return 1.0 - p_no_injury
 
 
@@ -578,13 +612,13 @@ def format_results_for_gemini(results: Dict[str, Any]) -> str:
         f"  Nij (proxy): {results['Nij']}",
         f"  Chest 3ms clip (diagnostic): {results['chest_A3ms_g']} g",
         f"  Thorax deflection proxy (IR-TRACC max, mm): {results['thorax_irtracc_max_deflection_proxy_mm']} mm",  # === CHANGE 14
-        f"  Femur load: {results['femur_load_kN']} kN",
+        f"  Femur axial force (kN): {results['femur_load_kN']} kN",
         "",
         "INJURY PROBABILITIES:",
-        f"  Head: {results['P_head']*100:.2f}%",
-        f"  Neck: {results['P_neck']*100:.2f}%",
+        f"  Head AIS3+: {results['P_head']*100:.2f}%",
+        f"  Neck AIS3+: {results['P_neck']*100:.2f}%",
         f"  Thorax AIS3+: {results['P_thorax_AIS3plus']*100:.2f}%",  # === CHANGE 15
-        f"  Femur: {results['P_femur']*100:.2f}%",
+        f"  Femur AIS2+ proxy: {results['P_femur_AIS2plus_proxy']*100:.2f}%",
         "",
         "OVERALL RISK:",
         f"  Combined probability: {results['P_baseline']*100:.2f}%",
@@ -604,7 +638,7 @@ def format_results_for_gemini(results: Dict[str, Any]) -> str:
         "ASSUMPTIONS:",
     ]
 
-    for assumption in results['assumptions']:
+    for assumption in results["assumptions"]:
         lines.append(f"  - {assumption}")
 
     return "\n".join(lines)
