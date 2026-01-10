@@ -1,5 +1,20 @@
+# node
+node_modules/
+.env
+dist/
+build/
+
+# unity
+[Ll]ibrary/
+[Tt]emp/
+[Bb]uild/
+[Oo]bj/
+[Ll]ogs/
+*.unitypackage
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
+.venv/
 *.py[codz]
 *$py.class
 
