@@ -41,8 +41,9 @@ def create_app():
             "status": "running",
             "endpoints": {
                 "health": "/api/health",
-                "calculate": "/api/crash-risk/calculate",
-                "analyze": "/api/crash-risk/analyze",
+                "evaluate": "/api/evaluate-crash (MAIN - AI-enhanced)",
+                "calculate": "/api/crash-risk/calculate (baseline only)",
+                "analyze": "/api/crash-risk/analyze (same as evaluate)",
                 "test": "/api/test/example-crash"
             }
         })
@@ -77,16 +78,18 @@ def create_app():
 
 if __name__ == '__main__':
     app = create_app()
-    print("=" * 60)
+    print("=" * 70)
     print("Safety1st Crash Risk Calculator API Starting...")
-    print("=" * 60)
+    print("=" * 70)
     print(f"Debug Mode: {app.config['DEBUG']}")
-    print(f"API Endpoints:")
-    print(f"  - Health Check:     http://localhost:5000/api/health")
-    print(f"  - Calculate Risk:   http://localhost:5000/api/crash-risk/calculate")
-    print(f"  - Analyze (Gemini): http://localhost:5000/api/crash-risk/analyze")
-    print(f"  - Test Example:     http://localhost:5000/api/test/example-crash")
-    print("=" * 60)
+    print(f"\nAPI Endpoints:")
+    print(f"  - Health Check:       http://localhost:5000/api/health")
+    print(f"  - Evaluate (MAIN):    http://localhost:5000/api/evaluate-crash")
+    print(f"  - Calculate (basic):  http://localhost:5000/api/crash-risk/calculate")
+    print(f"  - Analyze (alias):    http://localhost:5000/api/crash-risk/analyze")
+    print(f"  - Test Example:       http://localhost:5000/api/test/example-crash")
+    print(f"\nArchitecture: Baseline Physics + Web Scraper + Gemini AI")
+    print("=" * 70)
 
     app.run(
         debug=app.config['DEBUG'],

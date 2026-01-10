@@ -99,6 +99,8 @@ class CrashInputs:
 
                  # NEW: Occupant-specific vulnerabilities
                  neck_strength: str = "average",  # "weak", "average", "strong" (age/fitness dependent)
+                 seat_position: str = "driver",    # "driver" or "passenger"
+                 pelvis_lap_belt_fit: str = "average",  # "poor", "average", "good" (lap belt positioning)
 
                  # Restraint systems
                  seatbelt_used: bool = True,
@@ -136,6 +138,8 @@ class CrashInputs:
 
         # Vulnerability factors
         self.neck_strength = neck_strength.lower()
+        self.seat_position = seat_position.lower()
+        self.pelvis_lap_belt_fit = pelvis_lap_belt_fit.lower()
 
         self.seatbelt_used = seatbelt_used
         self.seatbelt_pretensioner = seatbelt_pretensioner
@@ -308,11 +312,13 @@ class BaselineRiskCalculator:
             "calculated_neck_lever_arm_m": round(self.inputs.neck_lever_arm, 3),
 
             # Seating position (affects injury risk)
+            "seat_position": self.inputs.seat_position,
             "seat_distance_from_wheel_m": self.inputs.seat_distance_from_wheel,
             "seat_recline_angle_deg": self.inputs.seat_recline_angle,
             "seat_height_relative_to_dash_m": self.inputs.seat_height_relative_to_dash,
             "torso_length_m": round(self.inputs.torso_length, 3),
             "neck_strength": self.inputs.neck_strength,
+            "pelvis_lap_belt_fit": self.inputs.pelvis_lap_belt_fit,
 
             # Assumptions and notes
             "assumptions": [
@@ -324,8 +330,10 @@ class BaselineRiskCalculator:
                 "Neck loads estimated from head inertia (no direct sensor)",
                 f"Neck injury adjusted for '{self.inputs.neck_strength}' neck strength and {self.inputs.seat_recline_angle}° recline",
                 "Chest deflection from simplified spring model",
+                f"Seat position: {self.inputs.seat_position} (passenger may have different posture/bracing)",
                 f"Seat distance from wheel: {self.inputs.seat_distance_from_wheel} m (optimal: 0.25-0.30 m)",
-                "Femur load from effective leg mass",
+                f"Pelvis/lap belt fit: {self.inputs.pelvis_lap_belt_fit} (affects load distribution and femur loading)",
+                "Femur load from effective leg mass, adjusted for pelvis fit and seat position",
                 "Risk curves are placeholders - need NHTSA/IIHS calibration"
             ]
         }
@@ -597,14 +605,31 @@ class BaselineRiskCalculator:
         """
         Compute femur axial load (baseline approximation).
 
-        F_femur ≈ m_leg_eff * a_occ_peak
+        F_femur ≈ m_leg_eff * a_occ_peak * pelvis_factor
+
+        Pelvis/lap belt fit affects load distribution:
+        - Poor fit: lap belt rides up onto abdomen, less femur loading protection
+        - Good fit: optimal load distribution through pelvis
 
         Args:
             a_occ_peak: peak occupant acceleration (m/s²)
 
         Returns: femur load in N
         """
-        F_femur = self.inputs.leg_mass * a_occ_peak
+        F_femur_base = self.inputs.leg_mass * a_occ_peak
+
+        # Adjust for pelvis/lap belt fit
+        pelvis_fit_factors = {
+            "poor": 1.25,    # Poor fit increases femur load (less pelvic support)
+            "average": 1.0,
+            "good": 0.85     # Good fit reduces femur load (optimal pelvic support)
+        }
+        pelvis_factor = pelvis_fit_factors.get(self.inputs.pelvis_lap_belt_fit, 1.0)
+
+        # Seat position affects loading (passenger may be more relaxed, different posture)
+        position_factor = 1.05 if self.inputs.seat_position == "passenger" else 1.0
+
+        F_femur = F_femur_base * pelvis_factor * position_factor
         return F_femur
 
     # ================== Step 5: Injury Probability Conversion ==================

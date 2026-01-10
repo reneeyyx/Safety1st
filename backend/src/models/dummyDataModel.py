@@ -65,6 +65,16 @@ class DummyDataModel(BaseModel):
         description="Neck strength (weak=elderly/injured, average=normal, strong=athletic)"
     )
 
+    seat_position: Optional[Literal["driver", "passenger"]] = Field(
+        default="driver",
+        description="Driver or passenger seat position"
+    )
+
+    pelvis_lap_belt_fit: Optional[Literal["poor", "average", "good"]] = Field(
+        default="average",
+        description="How well the lap belt fits the pelvis (poor=rides up, good=optimal position)"
+    )
+
     # ==================== Validators ====================
 
     @field_validator('occupant_mass_kg')
@@ -110,6 +120,24 @@ class DummyDataModel(BaseModel):
                 "seat_distance_from_wheel_cm": 30.0,
                 "seat_recline_angle_deg": 25.0,
                 "seat_height_relative_to_dash_cm": 0.0,
-                "neck_strength": "average"
+                "neck_strength": "average",
+                "seat_position": "driver",
+                "pelvis_lap_belt_fit": "average"
             }
         }
+
+
+class DummyDetails:
+    """
+    Lightweight dummy parameters model for scraper.
+    Simpler interface than DummyDataModel (no validation).
+    """
+    def __init__(self,
+                 gender: str,
+                 seat_position: str,
+                 pregnant: bool,
+                 pelvis_lap_belt_fit: str = "average"):
+        self.gender = gender
+        self.seat_position = seat_position
+        self.pregnant = pregnant
+        self.pelvis_lap_belt_fit = pelvis_lap_belt_fit

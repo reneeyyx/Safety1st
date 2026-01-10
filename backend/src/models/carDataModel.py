@@ -108,3 +108,27 @@ class CarDataModel(BaseModel):
                 "side_airbag": False
             }
         }
+
+
+class CarParameters:
+    """
+    Lightweight car parameters model for scraper.
+    Simpler interface than CarDataModel (no validation).
+    """
+    def __init__(self,
+                 crash_side: str,
+                 vehicle_mass: float,
+                 crumple_zone_length: float,
+                 cabin_rigidity: str,
+                 seatbelt_pretensioner: bool,
+                 seatbelt_load_limiter: bool,
+                 front_airbags: bool,
+                 side_airbags: bool):
+        self.crash_side = crash_side
+        self.vehicle_mass = vehicle_mass
+        self.crumple_zone_length = crumple_zone_length
+        self.cabin_rigidity = cabin_rigidity
+        self.seatbelt_pretensioner = seatbelt_pretensioner
+        self.seatbelt_load_limiter = seatbelt_load_limiter
+        self.front_airbags = front_airbags
+        self.side_airbags = side_airbags

@@ -5,17 +5,54 @@ Flask API routes for Safety1st crash risk calculation.
 from flask import Blueprint, request, jsonify
 from pydantic import ValidationError
 from typing import Dict, Any
+import asyncio
 
-from models.carDataModel import CarDataModel
-from models.dummyDataModel import DummyDataModel
+from models.carDataModel import CarDataModel, CarParameters
+from models.dummyDataModel import DummyDataModel, DummyDetails
 from modeling.calculator import (
     CrashInputs,
-    calculate_baseline_risk,
-    format_results_for_gemini
+    calculate_baseline_risk
 )
+from modeling.geminiAPI import (
+    analyze_with_gemini,
+    format_analysis_for_response
+)
+from scraper import scrape_safety_data
 
 # Create Flask blueprint
 api_blueprint = Blueprint('api', __name__)
+
+
+def convert_to_scraper_models(car_data: CarDataModel, dummy_data: DummyDataModel) -> tuple:
+    """
+    Convert API validation models to lightweight scraper models.
+
+    Args:
+        car_data: Validated CarDataModel
+        dummy_data: Validated DummyDataModel
+
+    Returns:
+        Tuple of (CarParameters, DummyDetails) for scraper
+    """
+    car_params = CarParameters(
+        crash_side=car_data.crash_side,
+        vehicle_mass=car_data.vehicle_mass_kg,
+        crumple_zone_length=car_data.crumple_zone_length_m,
+        cabin_rigidity=car_data.cabin_rigidity,
+        seatbelt_pretensioner=car_data.seatbelt_pretensioner,
+        seatbelt_load_limiter=car_data.seatbelt_load_limiter,
+        front_airbags=car_data.front_airbag,
+        side_airbags=car_data.side_airbag
+    )
+
+    dummy_details = DummyDetails(
+        gender=dummy_data.gender,
+        seat_position=dummy_data.seat_position,
+        pregnant=dummy_data.is_pregnant,
+        pelvis_lap_belt_fit=dummy_data.pelvis_lap_belt_fit
+    )
+
+    return car_params, dummy_details
 
 
 def transform_request_to_crash_inputs(car_data: CarDataModel, dummy_data: DummyDataModel) -> CrashInputs:
@@ -51,6 +88,8 @@ def transform_request_to_crash_inputs(car_data: CarDataModel, dummy_data: DummyD
         seat_recline_angle=dummy_data.seat_recline_angle_deg,
         seat_height_relative_to_dash=dummy_data.seat_height_relative_to_dash_cm / 100,  # cm → m
         neck_strength=dummy_data.neck_strength,
+        seat_position=dummy_data.seat_position,
+        pelvis_lap_belt_fit=dummy_data.pelvis_lap_belt_fit,
 
         # Restraints (from car_data)
         seatbelt_used=car_data.seatbelt_used,
@@ -203,12 +242,18 @@ def analyze_crash_risk_with_gemini():
     """
     POST /api/crash-risk/analyze
 
-    Enhanced endpoint that includes Gemini AI analysis.
+    Enhanced endpoint that includes Gemini AI analysis with web-scraped context.
 
     Request Body: JSON with "car_data" and "dummy_data" objects
 
     Returns:
-        JSON response with baseline calculation + AI-enhanced analysis
+        JSON response with:
+        - risk_score: 0-100 (AI-adjusted)
+        - confidence: 0-1
+        - explanation: detailed text explanation
+        - gender_bias_insights: list of insights
+        - baseline: physics calculation results
+        - data_sources: list of URLs used
     """
     try:
         # Get JSON from request
@@ -231,12 +276,10 @@ def analyze_crash_risk_with_gemini():
                 "details": e.errors()
             }), 400
 
-        # Transform to CrashInputs
+        # Step 1: Run baseline physics calculation
         crash_inputs = transform_request_to_crash_inputs(car_data, dummy_data)
-
-        # Run calculation
         try:
-            results = calculate_baseline_risk(crash_inputs)
+            baseline_results = calculate_baseline_risk(crash_inputs)
         except Exception as e:
             return jsonify({
                 "success": False,
@@ -244,16 +287,61 @@ def analyze_crash_risk_with_gemini():
                 "message": str(e)
             }), 500
 
-        # Format for Gemini
-        gemini_formatted = format_results_for_gemini(results)
+        # Step 2: Scrape external safety data
+        car_params, dummy_details = convert_to_scraper_models(car_data, dummy_data)
+        try:
+            # Run async scraper in sync context
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            scraped_context = loop.run_until_complete(
+                scrape_safety_data(car_params, dummy_details)
+            )
+            loop.close()
+        except Exception as e:
+            # If scraper fails, use empty context
+            scraped_context = {
+                "summaryText": "External data unavailable",
+                "genderBiasNotes": [],
+                "dataSources": []
+            }
+            print(f"Scraper error: {e}")
 
-        # TODO: Call Gemini API here
-        # For now, return baseline + formatted text
-        response = format_response(results)
-        response["gemini_analysis_input"] = gemini_formatted
-        response["gemini_analysis_output"] = "Gemini integration pending - see geminiAPI.py"
+        # Step 3: Call Gemini with baseline + scraped context
+        try:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            gemini_result = loop.run_until_complete(
+                analyze_with_gemini(baseline_results, scraped_context)
+            )
+            loop.close()
 
-        return jsonify(response), 200
+            # Format comprehensive response
+            response = format_analysis_for_response(
+                gemini_result,
+                baseline_results,
+                scraped_context
+            )
+            return jsonify(response), 200
+
+        except ValueError as e:
+            # Gemini API not configured - return baseline only
+            return jsonify({
+                "success": False,
+                "error": "Gemini API not configured",
+                "message": str(e),
+                "baseline_results": baseline_results,
+                "scraped_context": scraped_context
+            }), 503
+
+        except Exception as e:
+            # Gemini call failed - return baseline + scraper results
+            return jsonify({
+                "success": False,
+                "error": "Gemini analysis failed",
+                "message": str(e),
+                "baseline_results": baseline_results,
+                "scraped_context": scraped_context
+            }), 500
 
     except Exception as e:
         # Catch-all for unexpected errors
@@ -262,6 +350,22 @@ def analyze_crash_risk_with_gemini():
             "error": "Internal server error",
             "message": str(e)
         }), 500
+
+
+@api_blueprint.route('/evaluate-crash', methods=['POST'])
+def evaluate_crash():
+    """
+    POST /api/evaluate-crash
+
+    Alias for /api/crash-risk/analyze to match architecture documentation.
+    This is the main endpoint as specified in the architecture.
+
+    Request Body: JSON with "car_data" and "dummy_data" objects
+
+    Returns:
+        JSON response with AI-enhanced crash risk analysis
+    """
+    return analyze_crash_risk_with_gemini()
 
 
 @api_blueprint.route('/test/example-crash', methods=['GET'])
