@@ -5,8 +5,8 @@ Main Flask application entry point
 
 from flask import Flask, jsonify
 from flask_cors import CORS
-from src.api.routes import api_blueprint
-from src.config.settings import Config
+from api.routes import api_blueprint
+from config.settings import Config
 
 
 def create_app():

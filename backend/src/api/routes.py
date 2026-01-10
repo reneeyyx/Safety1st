@@ -6,8 +6,9 @@ from flask import Blueprint, request, jsonify
 from pydantic import ValidationError
 from typing import Dict, Any
 
-from src.models.crashRequestModel import CrashRequestModel
-from src.modeling.calculator import (
+from models.carDataModel import CarDataModel
+from models.dummyDataModel import DummyDataModel
+from modeling.calculator import (
     CrashInputs,
     calculate_baseline_risk,
     format_results_for_gemini
@@ -17,50 +18,51 @@ from src.modeling.calculator import (
 api_blueprint = Blueprint('api', __name__)
 
 
-def transform_request_to_crash_inputs(request_data: CrashRequestModel) -> CrashInputs:
+def transform_request_to_crash_inputs(car_data: CarDataModel, dummy_data: DummyDataModel) -> CrashInputs:
     """
-    Transform validated request model to CrashInputs for calculator.
+    Transform validated request models to CrashInputs for calculator.
 
     Converts user-friendly units to SI units:
     - km/h → m/s
     - cm → m
 
     Args:
-        request_data: Validated Pydantic model from user request
+        car_data: Validated car/vehicle data model
+        dummy_data: Validated occupant/dummy data model
 
     Returns:
         CrashInputs object ready for calculator
     """
     return CrashInputs(
-        # Crash parameters
-        impact_speed=request_data.impact_speed_kmh / 3.6,  # km/h → m/s
-        vehicle_mass=request_data.vehicle_mass_kg,
-        crash_side=request_data.crash_side,
+        # Crash parameters (from car_data)
+        impact_speed=car_data.impact_speed_kmh / 3.6,  # km/h → m/s
+        vehicle_mass=car_data.vehicle_mass_kg,
+        crash_side=car_data.crash_side,
         coefficient_restitution=0.0,  # Rigid barrier (always 0 for this use case)
 
-        # Occupant
-        occupant_mass=request_data.occupant_mass_kg,
-        occupant_height=request_data.occupant_height_m,
-        gender=request_data.gender,
-        is_pregnant=request_data.is_pregnant,
+        # Occupant (from dummy_data)
+        occupant_mass=dummy_data.occupant_mass_kg,
+        occupant_height=dummy_data.occupant_height_m,
+        gender=dummy_data.gender,
+        is_pregnant=dummy_data.is_pregnant,
 
-        # Seating position
-        seat_distance_from_wheel=request_data.seat_distance_from_wheel_cm / 100,  # cm → m
-        seat_recline_angle=request_data.seat_recline_angle_deg,
-        seat_height_relative_to_dash=request_data.seat_height_relative_to_dash_cm / 100,  # cm → m
-        neck_strength=request_data.neck_strength,
+        # Seating position (from dummy_data)
+        seat_distance_from_wheel=dummy_data.seat_distance_from_wheel_cm / 100,  # cm → m
+        seat_recline_angle=dummy_data.seat_recline_angle_deg,
+        seat_height_relative_to_dash=dummy_data.seat_height_relative_to_dash_cm / 100,  # cm → m
+        neck_strength=dummy_data.neck_strength,
 
-        # Restraints
-        seatbelt_used=request_data.seatbelt_used,
-        seatbelt_pretensioner=request_data.seatbelt_pretensioner,
-        seatbelt_load_limiter=request_data.seatbelt_load_limiter,
-        front_airbag=request_data.front_airbag,
-        side_airbag=request_data.side_airbag,
+        # Restraints (from car_data)
+        seatbelt_used=car_data.seatbelt_used,
+        seatbelt_pretensioner=car_data.seatbelt_pretensioner,
+        seatbelt_load_limiter=car_data.seatbelt_load_limiter,
+        front_airbag=car_data.front_airbag,
+        side_airbag=car_data.side_airbag,
 
-        # Structure
-        crumple_zone_length=request_data.crumple_zone_length_m,
-        cabin_rigidity=request_data.cabin_rigidity,
-        intrusion=request_data.intrusion_cm / 100  # cm → m
+        # Structure (from car_data)
+        crumple_zone_length=car_data.crumple_zone_length_m,
+        cabin_rigidity=car_data.cabin_rigidity,
+        intrusion=car_data.intrusion_cm / 100  # cm → m
     )
 
 
@@ -144,7 +146,7 @@ def calculate_crash_risk():
 
     Main endpoint for crash risk calculation.
 
-    Request Body: JSON matching CrashRequestModel schema
+    Request Body: JSON with "car_data" and "dummy_data" objects
 
     Returns:
         JSON response with risk score, injury criteria, probabilities, and context
@@ -159,9 +161,10 @@ def calculate_crash_risk():
                 "error": "No JSON data provided"
             }), 400
 
-        # Validate with Pydantic
+        # Validate with Pydantic - separate models
         try:
-            request_model = CrashRequestModel(**data)
+            car_data = CarDataModel(**data.get('car_data', {}))
+            dummy_data = DummyDataModel(**data.get('dummy_data', {}))
         except ValidationError as e:
             return jsonify({
                 "success": False,
@@ -170,7 +173,7 @@ def calculate_crash_risk():
             }), 400
 
         # Transform to CrashInputs
-        crash_inputs = transform_request_to_crash_inputs(request_model)
+        crash_inputs = transform_request_to_crash_inputs(car_data, dummy_data)
 
         # Run calculation
         try:
@@ -202,7 +205,7 @@ def analyze_crash_risk_with_gemini():
 
     Enhanced endpoint that includes Gemini AI analysis.
 
-    Request Body: JSON matching CrashRequestModel schema
+    Request Body: JSON with "car_data" and "dummy_data" objects
 
     Returns:
         JSON response with baseline calculation + AI-enhanced analysis
@@ -217,9 +220,10 @@ def analyze_crash_risk_with_gemini():
                 "error": "No JSON data provided"
             }), 400
 
-        # Validate with Pydantic
+        # Validate with Pydantic - separate models
         try:
-            request_model = CrashRequestModel(**data)
+            car_data = CarDataModel(**data.get('car_data', {}))
+            dummy_data = DummyDataModel(**data.get('dummy_data', {}))
         except ValidationError as e:
             return jsonify({
                 "success": False,
@@ -228,7 +232,7 @@ def analyze_crash_risk_with_gemini():
             }), 400
 
         # Transform to CrashInputs
-        crash_inputs = transform_request_to_crash_inputs(request_model)
+        crash_inputs = transform_request_to_crash_inputs(car_data, dummy_data)
 
         # Run calculation
         try:

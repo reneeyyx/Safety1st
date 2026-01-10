@@ -1,21 +1,25 @@
 {
-  "impact_speed_kmh": 50.0,
-  "vehicle_mass_kg": 1500.0,
-  "crash_side": "frontal",
-  "occupant_mass_kg": 75.0,
-  "occupant_height_m": 1.75,
-  "gender": "male",
-  "is_pregnant": false,
-  "seat_distance_from_wheel_cm": 30.0,
-  "seat_recline_angle_deg": 25.0,
-  "seat_height_relative_to_dash_cm": 0.0,
-  "neck_strength": "average",
-  "seatbelt_used": true,
-  "seatbelt_pretensioner": true,
-  "seatbelt_load_limiter": true,
-  "front_airbag": true,
-  "side_airbag": false,
-  "crumple_zone_length_m": 0.6,
-  "cabin_rigidity": "medium",
-  "intrusion_cm": 0.0
+  "car_data": {
+    "impact_speed_kmh": 50.0,
+    "crash_side": "frontal",
+    "vehicle_mass_kg": 1500.0,
+    "crumple_zone_length_m": 0.6,
+    "cabin_rigidity": "medium",
+    "intrusion_cm": 0.0,
+    "seatbelt_used": true,
+    "seatbelt_pretensioner": true,
+    "seatbelt_load_limiter": true,
+    "front_airbag": true,
+    "side_airbag": false
+  },
+  "dummy_data": {
+    "occupant_mass_kg": 75.0,
+    "occupant_height_m": 1.75,
+    "gender": "male",
+    "is_pregnant": false,
+    "seat_distance_from_wheel_cm": 30.0,
+    "seat_recline_angle_deg": 25.0,
+    "seat_height_relative_to_dash_cm": 0.0,
+    "neck_strength": "average"
+  }
 }
