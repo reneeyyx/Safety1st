@@ -4,6 +4,9 @@ node_modules/
 dist/
 build/
 
+# scraper cache
+backend/src/scraper/.cache/
+
 # unity
 [Ll]ibrary/
 [Tt]emp/
