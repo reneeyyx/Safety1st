@@ -133,27 +133,19 @@ class CrashInputs:
                  seat_height_relative_to_dash: float = 0.0,  # m
                  torso_length: float = None,              # m
 
-<<<<<<< HEAD
-                 # NEW: Occupant-specific vulnerabilities
-                 neck_strength: str = "average",  # "weak", "average", "strong" (age/fitness dependent)
-                 seat_position: str = "driver",    # "driver" or "passenger"
-                 pelvis_lap_belt_fit: str = "average",  # "poor", "average", "good" (lap belt positioning)
-=======
                  # Occupant-specific vulnerabilities
                  neck_strength: str = "average",  # "weak", "average", "strong"
+                 seat_position: str = "driver",    # "driver" or "passenger"
+                 pelvis_lap_belt_fit: str = "average",  # "poor", "average", "good"
 
-                 # === NEW: Neck dynamic model parameters (upgrade Nij)
-                 # A simple head-neck SDOF model driven by torso/occupant acceleration:
-                 #   m*ẍ + c*ẋ + k*x = -m*a_occ(t)
-                 # These parameters tune the head/neck relative motion and resulting neck loads.
-                 neck_nat_freq_hz: float = 10.0,      # typical order-of-magnitude; tune with data
-                 neck_damping_ratio: float = 0.20,    # dimensionless; tune with data
-                 neck_k_override: float = None,       # N/m (if you want to directly set stiffness)
-                 neck_c_override: float = None,       # N*s/m (if you want to directly set damping)
+                 # Neck dynamic model parameters (upgrade Nij)
+                 neck_nat_freq_hz: float = 10.0,      # Hz
+                 neck_damping_ratio: float = 0.20,    # dimensionless
+                 neck_k_override: float = None,       # N/m
+                 neck_c_override: float = None,       # N*s/m
 
-                 # === NEW: Injury correlation tuning
+                 # Injury correlation tuning
                  injury_correlation_factor: float = DEFAULT_INJURY_CORRELATION_FACTOR,
->>>>>>> 1e7a0563f04df797156eb8174374015323e35ebb
 
                  # Restraint systems
                  seatbelt_used: bool = True,
@@ -420,8 +412,8 @@ class BaselineRiskCalculator:
                 f"Pulse shape: half-sine over {pulse_duration*1000:.1f} ms",
                 f"Restraint model: {self._get_restraint_type_string()}",
                 f"Biomechanical parameters scaled from occupant mass ({self.inputs.occupant_mass} kg) and height ({self.inputs.occupant_height} m)",
-<<<<<<< HEAD
-                "Neck loads estimated from head inertia (no direct sensor) (Nij is a proxy here; not full sign/mode-based Nij)",
+                "Nij is computed from a simple head–neck spring-damper model driven by occupant acceleration time-history; this is still a proxy for true instrumented neck loads.",
+                "Nij intercepts are mode-aware in code (tension/compression & flexion/extension) but currently share the same values unless you replace them with published mode-specific intercepts.",
                 f"Neck injury adjusted for '{self.inputs.neck_strength}' neck strength and {self.inputs.seat_recline_angle}° recline",
                 "Chest deflection from simplified spring model",
                 f"Seat position: {self.inputs.seat_position} (passenger may have different posture/bracing)",
@@ -429,27 +421,10 @@ class BaselineRiskCalculator:
                 f"Pelvis/lap belt fit: {self.inputs.pelvis_lap_belt_fit} (affects load distribution and femur loading)",
                 "Femur load from effective leg mass, adjusted for pelvis fit and seat position",
                 "Thorax AIS3+ probability uses THOR-05F IR-TRACC max deflection IRF (X-Y resultant) on a proxy deflection signal (spring model).",
-                "Chest 3ms acceleration is computed but treated as diagnostic only in this calibration set.",
-                "Head/neck/femur risk curves are still placeholders in this file; replace with published AIS3+ curves and/or THOR-05F equivalents when available."
-=======
-
-                # Nij upgraded modeling caveat
-                "Nij is computed from a simple head–neck spring-damper model driven by occupant acceleration time-history; this is still a proxy for true instrumented neck loads.",
-                "Nij intercepts are mode-aware in code (tension/compression & flexion/extension) but currently share the same values unless you replace them with published mode-specific intercepts.",
-
-                # Thorax curve caveat
-                "Thorax AIS3+ probability uses THOR-05F IR-TRACC max deflection IRF (X-Y resultant) on a proxy deflection signal (spring model).",
                 "Chest 3ms acceleration is computed but treated as diagnostic only.",
-
-                # Femur caveat
                 "Femur probability uses AIS2+ (KTH) proxy curve on femur axial force (kN); not AIS3+.",
-
-                # Correlated combination caveat
                 "Overall injury probability uses correlation-adjusted union (positive correlation reduces incremental risk compared to independence).",
                 f"Correlation factor used: {self.inputs.injury_correlation_factor} (1.0 = independence; smaller = more clustering).",
-
-                f"Seat distance from wheel: {self.inputs.seat_distance_from_wheel} m (optimal: 0.25-0.30 m)",
->>>>>>> 1e7a0563f04df797156eb8174374015323e35ebb
             ]
         }
 
