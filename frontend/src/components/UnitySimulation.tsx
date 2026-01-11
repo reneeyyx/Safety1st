@@ -18,10 +18,10 @@ const getSimulationPath = (gender: 'male' | 'female', crashSide: 'frontal' | 'le
     'male_left': '/left_man/index.html',
     'male_right': '/right_man/index.html',
 
-    // Female simulations (to be added - uncomment when available)
-    // 'female_frontal': '/front_woman/index.html',
-    // 'female_left': '/left_woman/index.html',
-    // 'female_right': '/right_woman/index.html',
+    // Female simulations (currently available)
+    'female_frontal': '/front_woman/index.html',
+    'female_left': '/left_woman/index.html',
+    'female_right': '/right_woman/index.html',
 
     // Pregnant female simulations (to be added - uncomment when available)
     // Note: You may want to track pregnancy status separately if these need different models
@@ -94,7 +94,7 @@ const UnitySimulation: React.FC<UnitySimulationProps> = ({ gender, crashSide }) 
             {error || `No simulation for ${gender} ${crashSide} crash yet`}
           </p>
           <p className="text-safety-orange/40 text-xs">
-            Available: Male (frontal, left, right)
+            Available: Male (frontal, left, right) • Female (left, right)
           </p>
         </div>
       </div>

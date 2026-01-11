@@ -186,10 +186,16 @@ function App() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   {/* Left: Unity Simulation */}
                   <div className="order-2 lg:order-1">
-                    <UnitySimulation
-                      gender={currentGender}
-                      crashSide={currentCrashSide}
-                    />
+                    <div>
+                      <UnitySimulation
+                        gender={currentGender}
+                        crashSide={currentCrashSide}
+                      />
+                      {/* Instructions Below Simulation */}
+                      <div className="mt-4 bg-gradient-to-r from-[rgba(220,60,140,0.7)] to-[rgba(160,80,200,0.7)] bg-clip-text text-transparent" style={{ fontSize: '18px', fontWeight: '600', fontFamily: 'Poppins, sans-serif' }}>
+                        Click in to the simulator to start! Press the spacebar to simulate the crash, and the 'r' key to reset the simulation.
+                      </div>
+                    </div>
                   </div>
 
                   {/* Right: Input Form */}
