@@ -87,9 +87,9 @@ car_params = CarParameters(
 )
 dummy_params = DummyDetails(
     gender='male',
+    seat_position='driver',
     pregnant=False,
-    mass_kg=75.0,
-    height_m=1.75
+    pelvis_lap_belt_fit='average'
 )
 
 async def test_male_scraper():
@@ -170,9 +170,9 @@ test_result("Female baseline risk > Male baseline risk", risk_diff > 0,
 print("\nStep 3: Scrape safety research data (female)")
 dummy_params_female = DummyDetails(
     gender='female',
+    seat_position='driver',
     pregnant=False,
-    mass_kg=65.0,
-    height_m=1.65
+    pelvis_lap_belt_fit='average'
 )
 
 async def test_female_scraper():
@@ -250,9 +250,9 @@ test_result("Pregnancy increases baseline risk", pregnancy_diff > 0,
 print("\nStep 3: Scrape pregnancy-specific research")
 dummy_params_pregnant = DummyDetails(
     gender='female',
+    seat_position='driver',
     pregnant=True,
-    mass_kg=70.0,
-    height_m=1.65
+    pelvis_lap_belt_fit='average'
 )
 
 async def test_pregnant_scraper():

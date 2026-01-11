@@ -153,7 +153,7 @@ class CrashInputs:
                  seatbelt_load_limiter: bool = False,
                  front_airbag: bool = True,
                  side_airbag: bool = False,
-                 airbag_size: str = "standard",  # "small", "standard", "large"
+                 airbag_capacity_liters: float = 60.0,  # Airbag volume in liters (35-100L typical range)
 
                  # Structural parameters
                  crumple_zone_length: float = 0.5,  # m
@@ -217,7 +217,7 @@ class CrashInputs:
         self.seatbelt_load_limiter = seatbelt_load_limiter
         self.front_airbag = front_airbag
         self.side_airbag = side_airbag
-        self.airbag_size = airbag_size.lower()
+        self.airbag_capacity_liters = float(airbag_capacity_liters)
 
         # Vehicle/structure
         self.crumple_zone_length = crumple_zone_length
@@ -740,16 +740,28 @@ class BaselineRiskCalculator:
             elif self.inputs.seat_distance_from_wheel > 0.50:
                 gamma *= 1.2  # Too far: reduced protection
 
-            # Airbag size affects force distribution and coverage:
-            # - Small: Better for smaller occupants (less aggressive deployment)
-            # - Standard: Designed for 50th percentile male
-            # - Large: Better for larger occupants but can be too aggressive for small people
-            airbag_size_factors = {
-                "small": 0.90 if self.inputs.occupant_mass < 70 else 1.05,  # Good for light, bad for heavy
-                "standard": 1.0,  # Baseline
-                "large": 1.05 if self.inputs.occupant_mass < 70 else 0.95   # Bad for light, good for heavy
-            }
-            gamma *= airbag_size_factors.get(self.inputs.airbag_size, 1.0)
+            # Airbag capacity (volume in liters) affects force distribution:
+            # Typical ranges: 35L (small/compact), 60L (standard), 80-100L (large)
+            # Optimal capacity depends on occupant size for proper cushioning
+
+            capacity = self.inputs.airbag_capacity_liters
+            occupant_mass = self.inputs.occupant_mass
+
+            # Calculate optimal capacity for this occupant (rough heuristic)
+            # Rule: ~0.8-1.0 liters per kg of body mass for optimal protection
+            optimal_capacity = occupant_mass * 0.9
+
+            # Calculate mismatch factor
+            capacity_ratio = capacity / optimal_capacity if optimal_capacity > 0 else 1.0
+
+            # Apply penalty for mismatch:
+            # - Too small (<0.7x optimal): insufficient cushioning, higher deflection
+            # - Optimal (0.7-1.3x): minimal penalty
+            # - Too large (>1.3x optimal): excessive force, higher deflection for small occupants
+            if capacity_ratio < 0.7:
+                gamma *= (1.0 + (0.7 - capacity_ratio) * 0.3)  # Up to +30% deflection
+            elif capacity_ratio > 1.3:
+                gamma *= (1.0 + (capacity_ratio - 1.3) * 0.15)  # Up to +15% deflection per 0.1x excess
 
         # Base belt stiffness
         k_belt = DEFAULT_BELT_STIFFNESS

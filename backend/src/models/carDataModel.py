@@ -79,9 +79,11 @@ class CarDataModel(BaseModel):
         description="Is side airbag present?"
     )
 
-    airbag_size: Optional[Literal["small", "standard", "large"]] = Field(
-        default="standard",
-        description="Airbag size: small (better for light occupants), standard, large (better for heavy occupants)"
+    airbag_capacity_liters: Optional[float] = Field(
+        default=60.0,
+        ge=20,
+        le=150,
+        description="Airbag capacity in liters (20-150L). Typical: 35L (compact), 60L (standard), 80-100L (large). Optimal is ~0.9L per kg of occupant mass."
     )
 
     # ==================== Validators ====================

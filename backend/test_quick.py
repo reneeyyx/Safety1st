@@ -184,14 +184,14 @@ def test_safety_features():
 
 
 def test_airbag_sizes():
-    """Test airbag size effects on different occupants"""
+    """Test airbag capacity effects on different occupants"""
     print("="*70)
-    print(" TEST: Airbag Size Effects")
+    print(" TEST: Airbag Capacity Effects")
     print("="*70)
 
-    # Small female (60kg) with different airbag sizes
-    print("\nSmall Female (60kg, 50 km/h):")
-    for size in ['small', 'standard', 'large']:
+    # Small female (60kg) - optimal ~54L
+    print("\nSmall Female (60kg, 50 km/h) [Optimal: ~54L]:")
+    for capacity, label in [(35, '35L (too small)'), (54, '54L (optimal)'), (80, '80L (too large)')]:
         inputs = CrashInputs(
             impact_speed=50.0 / 3.6,
             vehicle_mass=1500.0,
@@ -208,7 +208,7 @@ def test_airbag_sizes():
             seatbelt_load_limiter=True,
             front_airbag=True,
             side_airbag=False,
-            airbag_size=size,
+            airbag_capacity_liters=capacity,
             crumple_zone_length=0.6,
             cabin_rigidity='medium',
             intrusion=0.0
@@ -216,11 +216,11 @@ def test_airbag_sizes():
 
         results = calculate_baseline_risk(inputs)
         risk = results['risk_score_0_100']
-        print(f"  {size:8s} airbag: Risk={risk:5.1f}%")
+        print(f"  {label:20s}: Risk={risk:5.1f}%")
 
-    # Large male (90kg) with different airbag sizes
-    print("\nLarge Male (90kg, 50 km/h):")
-    for size in ['small', 'standard', 'large']:
+    # Large male (90kg) - optimal ~81L
+    print("\nLarge Male (90kg, 50 km/h) [Optimal: ~81L]:")
+    for capacity, label in [(50, '50L (too small)'), (81, '81L (optimal)'), (100, '100L (adequate)')]:
         inputs = CrashInputs(
             impact_speed=50.0 / 3.6,
             vehicle_mass=1500.0,
@@ -237,7 +237,7 @@ def test_airbag_sizes():
             seatbelt_load_limiter=True,
             front_airbag=True,
             side_airbag=False,
-            airbag_size=size,
+            airbag_capacity_liters=capacity,
             crumple_zone_length=0.6,
             cabin_rigidity='medium',
             intrusion=0.0
@@ -245,7 +245,7 @@ def test_airbag_sizes():
 
         results = calculate_baseline_risk(inputs)
         risk = results['risk_score_0_100']
-        print(f"  {size:8s} airbag: Risk={risk:5.1f}%")
+        print(f"  {label:20s}: Risk={risk:5.1f}%")
 
     print()
 
