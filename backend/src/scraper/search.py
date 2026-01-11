@@ -64,6 +64,9 @@ async def search_urls(query: str) -> List[str]:
         # IIHS general crash test info
         "https://www.iihs.org/ratings",
 
+        # IIHS pregnancy research - specific study on pregnant occupants
+        "https://www.iihs.org/research-areas/bibliography/ref/2331",
+
         # WHO road safety data
         "https://www.who.int/news-room/fact-sheets/detail/road-traffic-injuries",
 
@@ -73,8 +76,6 @@ async def search_urls(query: str) -> List[str]:
         # CDC motor vehicle safety
         "https://www.cdc.gov/transportationsafety/index.html",
 
-        # IIHS pregnancy research - specific study on pregnant occupants
-        "https://www.iihs.org/research-areas/bibliography/ref/2331",
     ]
 
     return SAFETY_URLS

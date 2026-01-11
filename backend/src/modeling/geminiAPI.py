@@ -244,7 +244,7 @@ async def analyze_with_gemini(
 
     Raises:
         ValueError: If API key not configured or response invalid
-        Exception: If API call fails
+        Exception: If API call fails after retries
     """
     if not Config.GEMINI_API_KEY:
         raise ValueError(
@@ -261,17 +261,69 @@ async def analyze_with_gemini(
     # Initialize model
     model = genai.GenerativeModel(model_name)
 
-    # Generate response
-    try:
-        response = model.generate_content(prompt)
-        response_text = response.text
-    except Exception as e:
-        raise Exception(f"Gemini API call failed: {e}")
+    # Generate response with retry logic for quota errors
+    import time
+    max_retries = 3
+    retry_delay = 2  # seconds
+
+    for attempt in range(max_retries):
+        try:
+            response = model.generate_content(prompt)
+            response_text = response.text
+            break  # Success, exit retry loop
+
+        except Exception as e:
+            error_msg = str(e)
+
+            # Check if it's a quota error
+            if "quota" in error_msg.lower() or "429" in error_msg:
+                if attempt < max_retries - 1:
+                    # Wait with exponential backoff
+                    wait_time = retry_delay * (2 ** attempt)
+                    print(f"Quota exceeded, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})...")
+                    time.sleep(wait_time)
+                    continue
+                else:
+                    # Final attempt failed, return fallback analysis
+                    print("Quota exceeded after all retries, using baseline analysis only")
+                    return _create_fallback_analysis(baseline_results)
+            else:
+                # Non-quota error, fail immediately
+                raise Exception(f"Gemini API call failed: {e}")
 
     # Parse response
     result = parse_gemini_response(response_text)
 
     return result
+
+
+def _create_fallback_analysis(baseline_results: Dict[str, Any]) -> GeminiAnalysisResult:
+    """
+    Create a fallback analysis when Gemini API is unavailable.
+    Uses baseline risk score with generic but informative explanation.
+    """
+    baseline_risk = baseline_results.get('risk_score_0_100', 50)
+
+    explanation = (
+        f"This risk assessment is based on physics-based calculations using standard "
+        f"injury criteria (HIC15, Nij, chest deflection, femur load). "
+        f"The baseline risk score of {baseline_risk:.1f}% reflects the probability "
+        f"of significant injury based on crash dynamics and occupant biomechanics. "
+        f"AI-enhanced analysis temporarily unavailable due to API limits."
+    )
+
+    gender_bias_insights = [
+        "Female occupants typically face higher injury risk due to smaller body size and different seating positions.",
+        "Crash test standards have historically used average male dummies, potentially underestimating female risk.",
+        "Pregnant occupants face additional risks to both maternal and fetal health during crashes."
+    ]
+
+    return GeminiAnalysisResult(
+        risk_score=baseline_risk,
+        confidence=0.70,  # Lower confidence without AI enhancement
+        explanation=explanation,
+        gender_bias_insights=gender_bias_insights
+    )
 
 
 def format_analysis_for_response(

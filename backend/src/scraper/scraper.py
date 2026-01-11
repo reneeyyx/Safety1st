@@ -88,7 +88,7 @@ async def scrape_safety_data(
         p
         for p in all_paragraphs
         if any(word in p.lower() for word in gender_keywords)
-    ][:10]  # Increased from 5 to 10
+    ][:50]  # Increased from 5 to 10
 
     # Remove duplicates while preserving order
     seen = set()

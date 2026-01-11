@@ -8,40 +8,55 @@ def extract_text(html: str) -> str:
 
     soup = BeautifulSoup(html, "html.parser")
 
-    # remove scripts/styles/noscript
-    for tag in soup(["script", "style", "noscript"]):
+    # remove scripts/styles/noscript/nav/footer/header
+    for tag in soup(["script", "style", "noscript", "nav", "footer", "header"]):
         tag.decompose()
 
-    # For bibliography/research pages, we need to extract from multiple elements
-    # Not just <p> tags, but also <div>, <span>, <li>, <td> that contain text
     text_elements: List[str] = []
 
-    # Get paragraphs (primary)
-    for p in soup.find_all("p"):
-        text = p.get_text(separator=" ", strip=True)
-        if len(text) > 20:  # Filter out very short snippets
-            text_elements.append(text)
+    # IIHS bibliography pages use specific structure:
+    # Look for citation/reference containers first
+    citation_containers = soup.find_all(['div', 'section', 'article'],
+                                       class_=lambda x: x and any(term in str(x).lower()
+                                       for term in ['citation', 'reference', 'content', 'main', 'article', 'bibliography']))
 
-    # Get divs with substantial text (for research pages)
-    for div in soup.find_all("div", class_=True):
-        text = div.get_text(separator=" ", strip=True)
-        # Only include if it has substantial content and doesn't duplicate
-        if len(text) > 50 and text not in text_elements:
-            text_elements.append(text)
+    if citation_containers:
+        # Extract from specific bibliography containers
+        for container in citation_containers:
+            # Get title/heading
+            for heading in container.find_all(['h1', 'h2', 'h3', 'h4']):
+                text = heading.get_text(separator=" ", strip=True)
+                if len(text) > 10:
+                    text_elements.append(text)
 
-    # Get list items (often used in research summaries)
-    for li in soup.find_all("li"):
-        text = li.get_text(separator=" ", strip=True)
-        if len(text) > 30 and text not in text_elements:
-            text_elements.append(text)
+            # Get paragraphs within container
+            for p in container.find_all("p"):
+                text = p.get_text(separator=" ", strip=True)
+                if len(text) > 30:
+                    text_elements.append(text)
 
-    # Get table cells (sometimes research data is in tables)
-    for td in soup.find_all("td"):
-        text = td.get_text(separator=" ", strip=True)
-        if len(text) > 30 and text not in text_elements:
-            text_elements.append(text)
+            # Get any direct text in container
+            for child in container.find_all(['span', 'div'], recursive=False):
+                text = child.get_text(separator=" ", strip=True)
+                if len(text) > 40 and not any(text in existing for existing in text_elements):
+                    text_elements.append(text)
 
-    # If nothing found, try getting all text from body
+    # Fallback: Get all paragraphs
+    if not text_elements:
+        for p in soup.find_all("p"):
+            text = p.get_text(separator=" ", strip=True)
+            if len(text) > 20:
+                text_elements.append(text)
+
+    # Fallback: Get main content area
+    if not text_elements:
+        main_content = soup.find(['main', 'article', 'div'], id=lambda x: x and 'content' in str(x).lower())
+        if main_content:
+            text = main_content.get_text(separator=" ", strip=True)
+            if len(text) > 100:
+                return text
+
+    # Last resort: Get all body text
     if not text_elements:
         body = soup.find("body")
         if body:
