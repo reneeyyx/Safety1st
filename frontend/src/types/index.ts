@@ -1,6 +1,6 @@
 export interface CarData {
   impact_speed_kmh: number;
-  crash_side: 'frontal' | 'side' | 'rear';
+  crash_side: 'frontal' | 'left' | 'right';
   vehicle_mass_kg: number;
   crumple_zone_length_m: number;
   cabin_rigidity: 'low' | 'medium' | 'high';
