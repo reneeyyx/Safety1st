@@ -20,9 +20,10 @@
   background: rgba(42, 42, 42, 0.9);
 }
 
-/* Smooth scrolling */
+/* Smooth scrolling and prevent layout shift from scrollbar */
 html {
   scroll-behavior: smooth;
+  overflow-y: scroll; /* Always show scrollbar to prevent shift */
 }
 
 /* Fade in animation */

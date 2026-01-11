@@ -77,22 +77,26 @@ def create_app():
 
 
 if __name__ == '__main__':
+    import os
     app = create_app()
+    port = int(os.getenv('PORT', 5001))
+
     print("=" * 70)
     print("Safety1st Crash Risk Calculator API Starting...")
     print("=" * 70)
     print(f"Debug Mode: {app.config['DEBUG']}")
     print(f"\nAPI Endpoints:")
-    print(f"  - Health Check:       http://localhost:5000/api/health")
-    print(f"  - Evaluate (MAIN):    http://localhost:5000/api/evaluate-crash")
-    print(f"  - Calculate (basic):  http://localhost:5000/api/crash-risk/calculate")
-    print(f"  - Analyze (alias):    http://localhost:5000/api/crash-risk/analyze")
-    print(f"  - Test Example:       http://localhost:5000/api/test/example-crash")
-    print(f"\nArchitecture: Baseline Physics + Web Scraper + Gemini AI")
+    print(f"  - Health Check:       http://localhost:{port}/api/health")
+    print(f"  - Evaluate (MAIN):    http://localhost:{port}/api/evaluate-crash")
+    print(f"  - Calculate (basic):  http://localhost:{port}/api/crash-risk/calculate")
+    print(f"  - Analyze (alias):    http://localhost:{port}/api/crash-risk/analyze")
+    print(f"  - Test Example:       http://localhost:{port}/api/test/example-crash")
+    print(f"  - History:            http://localhost:{port}/api/history")
+    print(f"\nArchitecture: Baseline Physics + Web Scraper + Gemini AI + MongoDB Atlas")
     print("=" * 70)
 
     app.run(
         debug=app.config['DEBUG'],
         host='0.0.0.0',
-        port=5000
+        port=port
     )
