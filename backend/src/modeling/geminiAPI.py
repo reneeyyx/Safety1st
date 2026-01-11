@@ -121,19 +121,27 @@ Your task is to analyze crash test data and provide a comprehensive risk assessm
     else:
         prompt += "\n(No external sources scraped)"
 
-    prompt += """
+    prompt += f"""
 
 ## YOUR TASK
 
 Analyze the above data and provide:
 
-1. **Final Risk Score (0-100):** Adjust the baseline risk score based on:
-   - How the actual injury criteria compare to safe thresholds
-   - Gender-specific vulnerabilities mentioned in research
-   - Pregnancy considerations if applicable
-   - Seat position (driver vs passenger affects bracing and awareness)
-   - Pelvis/lap belt fit quality (poor fit increases abdominal/femur injury risk)
-   - Any protective or risk factors from the restraint system
+1. **Final Risk Score (0-100):**
+
+   IMPORTANT: Start with the baseline risk score of **{baseline_risk:.1f}%** and make SMALL adjustments only.
+
+   The baseline is physics-based and already accurate. Your adjustments should be:
+   - **±5-15 points maximum** based on factors below
+   - INCREASE risk if: research shows higher female vulnerability, pregnancy, poor restraint fit
+   - DECREASE risk if: research shows better-than-expected outcomes, optimal restraints
+   - DO NOT completely override the baseline - it's based on validated injury criteria
+
+   Consider for adjustment:
+   - Gender-specific vulnerabilities from research (typically +5-10% for females)
+   - Pregnancy considerations (+5-15% for pregnant occupants)
+   - Seat position and belt fit quality (±5%)
+   - Research findings that contradict or support baseline assumptions
 
 2. **Confidence Level (0-100):** Rate your confidence in this assessment based on:
    - Quality and relevance of external data
@@ -176,12 +184,13 @@ Be objective, evidence-based, and cite specific injury criteria values when expl
     return prompt
 
 
-def parse_gemini_response(response_text: str) -> GeminiAnalysisResult:
+def parse_gemini_response(response_text: str, baseline_risk: float = None) -> GeminiAnalysisResult:
     """
     Parse Gemini's JSON response into a structured result object.
 
     Args:
         response_text: Raw text from Gemini API
+        baseline_risk: Optional baseline risk to validate against
 
     Returns:
         GeminiAnalysisResult object
@@ -218,8 +227,23 @@ def parse_gemini_response(response_text: str) -> GeminiAnalysisResult:
     if confidence > 1.0:
         confidence = confidence / 100.0
 
+    risk_score = float(data['risk_score'])
+
+    # Validate that Gemini didn't stray too far from baseline
+    if baseline_risk is not None:
+        max_deviation = 20.0  # Allow ±20 points max
+        if abs(risk_score - baseline_risk) > max_deviation:
+            print(f"WARNING: Gemini risk ({risk_score:.1f}) deviates >20 points from baseline ({baseline_risk:.1f})")
+            print(f"Clamping to baseline ±{max_deviation} range")
+
+            # Clamp to baseline ±20
+            if risk_score < baseline_risk - max_deviation:
+                risk_score = baseline_risk - max_deviation
+            elif risk_score > baseline_risk + max_deviation:
+                risk_score = baseline_risk + max_deviation
+
     return GeminiAnalysisResult(
-        risk_score=float(data['risk_score']),
+        risk_score=risk_score,
         confidence=confidence,
         explanation=data['explanation'],
         gender_bias_insights=data.get('gender_bias_insights', [])
@@ -291,8 +315,9 @@ async def analyze_with_gemini(
                 # Non-quota error, fail immediately
                 raise Exception(f"Gemini API call failed: {e}")
 
-    # Parse response
-    result = parse_gemini_response(response_text)
+    # Parse response with baseline validation
+    baseline_risk = baseline_results.get('risk_score_0_100', 50)
+    result = parse_gemini_response(response_text, baseline_risk=baseline_risk)
 
     return result
 

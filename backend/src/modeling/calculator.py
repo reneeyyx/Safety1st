@@ -153,6 +153,7 @@ class CrashInputs:
                  seatbelt_load_limiter: bool = False,
                  front_airbag: bool = True,
                  side_airbag: bool = False,
+                 airbag_size: str = "standard",  # "small", "standard", "large"
 
                  # Structural parameters
                  crumple_zone_length: float = 0.5,  # m
@@ -216,6 +217,7 @@ class CrashInputs:
         self.seatbelt_load_limiter = seatbelt_load_limiter
         self.front_airbag = front_airbag
         self.side_airbag = side_airbag
+        self.airbag_size = airbag_size.lower()
 
         # Vehicle/structure
         self.crumple_zone_length = crumple_zone_length
@@ -737,6 +739,17 @@ class BaselineRiskCalculator:
                 gamma *= 1.15  # Close: suboptimal airbag timing (typical female)
             elif self.inputs.seat_distance_from_wheel > 0.50:
                 gamma *= 1.2  # Too far: reduced protection
+
+            # Airbag size affects force distribution and coverage:
+            # - Small: Better for smaller occupants (less aggressive deployment)
+            # - Standard: Designed for 50th percentile male
+            # - Large: Better for larger occupants but can be too aggressive for small people
+            airbag_size_factors = {
+                "small": 0.90 if self.inputs.occupant_mass < 70 else 1.05,  # Good for light, bad for heavy
+                "standard": 1.0,  # Baseline
+                "large": 1.05 if self.inputs.occupant_mass < 70 else 0.95   # Bad for light, good for heavy
+            }
+            gamma *= airbag_size_factors.get(self.inputs.airbag_size, 1.0)
 
         # Base belt stiffness
         k_belt = DEFAULT_BELT_STIFFNESS

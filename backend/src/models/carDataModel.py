@@ -79,6 +79,11 @@ class CarDataModel(BaseModel):
         description="Is side airbag present?"
     )
 
+    airbag_size: Optional[Literal["small", "standard", "large"]] = Field(
+        default="standard",
+        description="Airbag size: small (better for light occupants), standard, large (better for heavy occupants)"
+    )
+
     # ==================== Validators ====================
 
     @field_validator('impact_speed_kmh')

@@ -183,6 +183,73 @@ def test_safety_features():
     print()
 
 
+def test_airbag_sizes():
+    """Test airbag size effects on different occupants"""
+    print("="*70)
+    print(" TEST: Airbag Size Effects")
+    print("="*70)
+
+    # Small female (60kg) with different airbag sizes
+    print("\nSmall Female (60kg, 50 km/h):")
+    for size in ['small', 'standard', 'large']:
+        inputs = CrashInputs(
+            impact_speed=50.0 / 3.6,
+            vehicle_mass=1500.0,
+            crash_side='frontal',
+            coefficient_restitution=0.0,
+            occupant_mass=60.0,
+            occupant_height=1.60,
+            gender='female',
+            is_pregnant=False,
+            seat_position='driver',
+            pelvis_lap_belt_fit='average',
+            seatbelt_used=True,
+            seatbelt_pretensioner=True,
+            seatbelt_load_limiter=True,
+            front_airbag=True,
+            side_airbag=False,
+            airbag_size=size,
+            crumple_zone_length=0.6,
+            cabin_rigidity='medium',
+            intrusion=0.0
+        )
+
+        results = calculate_baseline_risk(inputs)
+        risk = results['risk_score_0_100']
+        print(f"  {size:8s} airbag: Risk={risk:5.1f}%")
+
+    # Large male (90kg) with different airbag sizes
+    print("\nLarge Male (90kg, 50 km/h):")
+    for size in ['small', 'standard', 'large']:
+        inputs = CrashInputs(
+            impact_speed=50.0 / 3.6,
+            vehicle_mass=1500.0,
+            crash_side='frontal',
+            coefficient_restitution=0.0,
+            occupant_mass=90.0,
+            occupant_height=1.85,
+            gender='male',
+            is_pregnant=False,
+            seat_position='driver',
+            pelvis_lap_belt_fit='average',
+            seatbelt_used=True,
+            seatbelt_pretensioner=True,
+            seatbelt_load_limiter=True,
+            front_airbag=True,
+            side_airbag=False,
+            airbag_size=size,
+            crumple_zone_length=0.6,
+            cabin_rigidity='medium',
+            intrusion=0.0
+        )
+
+        results = calculate_baseline_risk(inputs)
+        risk = results['risk_score_0_100']
+        print(f"  {size:8s} airbag: Risk={risk:5.1f}%")
+
+    print()
+
+
 def test_production_threshold():
     """Test production safety threshold"""
     print("="*70)
@@ -263,6 +330,7 @@ def main():
         test_realistic_speeds()
         test_gender_differences()
         test_safety_features()
+        test_airbag_sizes()
         test_production_threshold()
 
         print("="*70)
