@@ -103,6 +103,7 @@ const CrashInputForm: React.FC<CrashInputFormProps> = ({ onSubmit, onFormChange 
               required
               min="0"
               max="200"
+              step="1"
             />
           </div>
 
@@ -143,6 +144,7 @@ const CrashInputForm: React.FC<CrashInputFormProps> = ({ onSubmit, onFormChange 
               required
               min="500"
               max="5000"
+              step="1"
             />
           </div>
 
