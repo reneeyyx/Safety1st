@@ -1,0 +1,298 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(26, 26, 26, 0.8);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(42, 42, 42, 0.9);
+}
+
+/* Smooth scrolling and prevent layout shift from scrollbar */
+html {
+  scroll-behavior: smooth;
+  overflow-y: scroll; /* Always show scrollbar to prevent shift */
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.6s ease-in;
+}
+
+/* Slide up and fade in animation */
+@keyframes slideUpFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slideUpFadeIn {
+  animation: slideUpFadeIn 0.8s ease-out;
+  animation-fill-mode: both;
+}
+
+/* Glow button effect */
+.glow-button:hover {
+  box-shadow: 0 0 20px rgba(199, 91, 122, 0.4),
+              0 0 40px rgba(199, 91, 122, 0.2),
+              0 0 60px rgba(199, 91, 122, 0.1);
+}
+
+/* Custom checkbox styles */
+input[type="checkbox"] {
+  accent-color: #C75B7A;
+  cursor: pointer;
+}
+
+input[type="checkbox"]:focus {
+  ring: 2px;
+  ring-color: #C75B7A;
+}
+
+/* Number input arrows styling */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  opacity: 0.6;
+}
+
+/* Select dropdown arrow styling */
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 12px 12px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 2.5rem;
+}
+
+/* ===== ACCESSIBILITY MODES ===== */
+
+/* High Contrast Mode */
+.accessibility-high-contrast {
+  --safety-orange: #FF0080;
+  --safety-orange-dark: #A020F0;
+  --safety-black: #000000;
+  --safety-gray: #FFFFFF;
+}
+
+.accessibility-high-contrast body {
+  background: #000000 !important;
+  color: #FFFFFF !important;
+}
+
+.accessibility-high-contrast * {
+  border-color: #FFFFFF !important;
+}
+
+.accessibility-high-contrast button,
+.accessibility-high-contrast input,
+.accessibility-high-contrast select {
+  border: 3px solid #FFFFFF !important;
+}
+
+/* Colorblind Safe Mode - Uses blue/orange color scheme safe for all types of colorblindness */
+/* Designed for deuteranopia, protanopia, and tritanopia */
+.accessibility-colorblind-safe {
+  --safety-orange: #0077BB; /* Blue - universally distinguishable */
+  --safety-orange-dark: #004488; /* Dark blue for accents */
+}
+
+/* Override all pink/magenta colors with colorblind-safe blue */
+.accessibility-colorblind-safe .text-safety-orange,
+.accessibility-colorblind-safe [class*="text-safety-orange"] {
+  color: #0077BB !important; /* Bright blue */
+}
+
+.accessibility-colorblind-safe .border-safety-orange,
+.accessibility-colorblind-safe [class*="border-safety-orange"] {
+  border-color: #0077BB !important;
+}
+
+.accessibility-colorblind-safe .bg-safety-orange {
+  background-color: #0077BB !important;
+}
+
+/* Add thicker borders for better distinction */
+.accessibility-colorblind-safe button,
+.accessibility-colorblind-safe input,
+.accessibility-colorblind-safe select {
+  border-width: 3px !important;
+  border-style: solid !important;
+  border-color: #0077BB !important;
+}
+
+/* Add visual patterns to different states */
+.accessibility-colorblind-safe button:hover,
+.accessibility-colorblind-safe button:focus {
+  outline: 3px solid #0077BB !important;
+  outline-offset: 2px !important;
+  background-color: #004488 !important;
+}
+
+/* Ensure status colors are colorblind-safe using blue-orange palette */
+.accessibility-colorblind-safe .text-green-400 {
+  color: #0077BB !important; /* Blue for success/safe */
+}
+
+.accessibility-colorblind-safe .text-yellow-400 {
+  color: #EE7733 !important; /* Orange for warning - distinguishable from blue */
+}
+
+.accessibility-colorblind-safe .text-red-400 {
+  color: #CC3311 !important; /* Red-orange for danger - high contrast */
+}
+
+/* Add underlines to links and interactive elements */
+.accessibility-colorblind-safe a,
+.accessibility-colorblind-safe button {
+  text-decoration: underline !important;
+  text-decoration-thickness: 2px !important;
+  text-underline-offset: 3px !important;
+}
+
+/* Enhanced focus states with patterns */
+.accessibility-colorblind-safe *:focus-visible {
+  outline: 4px solid #0077BB !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 2px #000, 0 0 0 6px #0077BB !important;
+}
+
+/* Override checkbox accent color */
+.accessibility-colorblind-safe input[type="checkbox"] {
+  accent-color: #0077BB !important;
+}
+
+/* Override button glow effects */
+.accessibility-colorblind-safe .glow-button:hover {
+  box-shadow: 0 0 20px rgba(0, 119, 187, 0.4),
+              0 0 40px rgba(0, 119, 187, 0.2),
+              0 0 60px rgba(0, 119, 187, 0.1) !important;
+}
+
+/* Override title colors (handles inline styles) */
+.accessibility-colorblind-safe h1,
+.accessibility-colorblind-safe h2,
+.accessibility-colorblind-safe h3 {
+  color: #0077BB !important;
+}
+
+/* Override any elements with inline color styles */
+.accessibility-colorblind-safe [style*="color"] {
+  color: #0077BB !important;
+}
+
+/* Dyslexia Friendly Mode */
+.accessibility-dyslexia-friendly * {
+  font-family: 'OpenDyslexic', 'Comic Sans MS', Arial, sans-serif !important;
+  letter-spacing: 0.05em !important;
+  line-height: 1.8 !important;
+  word-spacing: 0.16em !important;
+}
+
+.accessibility-dyslexia-friendly h1,
+.accessibility-dyslexia-friendly h2,
+.accessibility-dyslexia-friendly h3,
+.accessibility-dyslexia-friendly h4,
+.accessibility-dyslexia-friendly h5,
+.accessibility-dyslexia-friendly h6 {
+  font-weight: 700 !important;
+  margin-bottom: 0.8em !important;
+}
+
+.accessibility-dyslexia-friendly p {
+  margin-bottom: 1em !important;
+}
+
+/* Large Text Mode */
+.accessibility-large-text {
+  font-size: 18px;
+}
+
+.accessibility-large-text p,
+.accessibility-large-text span,
+.accessibility-large-text div,
+.accessibility-large-text label,
+.accessibility-large-text li {
+  font-size: 1.2rem !important;
+  line-height: 1.6 !important;
+}
+
+.accessibility-large-text h1 {
+  font-size: 2.5rem !important;
+}
+
+.accessibility-large-text h2 {
+  font-size: 2rem !important;
+}
+
+.accessibility-large-text h3 {
+  font-size: 1.75rem !important;
+}
+
+.accessibility-large-text button {
+  font-size: 1.1rem !important;
+  padding: 0.75rem 1.25rem !important;
+}
+
+.accessibility-large-text input,
+.accessibility-large-text select,
+.accessibility-large-text textarea {
+  font-size: 1.1rem !important;
+  padding: 0.75rem !important;
+}
+
+/* Reduced Motion */
+.reduced-motion *,
+.reduced-motion *::before,
+.reduced-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Focus styles for keyboard navigation (all modes) */
+*:focus-visible {
+  outline: 3px solid #C75B7A !important;
+  outline-offset: 2px !important;
+}
+
+/* Improved button states for accessibility */
+button:hover,
+button:focus {
+  transform: scale(1.05);
+  transition: transform 0.2s ease;
+}
+
+.reduced-motion button:hover,
+.reduced-motion button:focus {
+  transform: none !important;
+}
