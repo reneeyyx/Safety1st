@@ -47,7 +47,7 @@ def build_gemini_prompt(
     hic15 = baseline_results.get('HIC15', 0)
     nij = baseline_results.get('Nij', 0)
     chest_a3ms = baseline_results.get('chest_A3ms_g', 0)
-    chest_deflection_mm = baseline_results.get('chest_deflection_mm', 0)
+    chest_deflection_mm = baseline_results.get('thorax_irtracc_max_deflection_proxy_mm', 0)
     femur_load_kn = baseline_results.get('femur_load_kN', 0)
     baseline_risk = baseline_results.get('risk_score_0_100', 0)
 
@@ -290,14 +290,20 @@ def format_analysis_for_response(
     Returns:
         Dictionary ready for JSON response
     """
+    risk_score = round(result.risk_score, 1)
+
     return {
         "success": True,
 
         # Final AI-enhanced results
-        "risk_score": round(result.risk_score, 1),
+        "risk_score": risk_score,
         "confidence": round(result.confidence, 4),
         "explanation": result.explanation,
         "gender_bias_insights": result.gender_bias_insights,
+
+        # Production safety flag (based on AI-adjusted score)
+        "safe_for_production": risk_score <= Config.PRODUCTION_SAFETY_THRESHOLD,
+        "production_threshold": Config.PRODUCTION_SAFETY_THRESHOLD,
 
         # Baseline physics calculation (for transparency)
         "baseline": {
@@ -306,14 +312,14 @@ def format_analysis_for_response(
                 "HIC15": baseline_results.get('HIC15'),
                 "Nij": baseline_results.get('Nij'),
                 "chest_A3ms_g": baseline_results.get('chest_A3ms_g'),
-                "chest_deflection_mm": baseline_results.get('chest_deflection_mm'),
+                "chest_deflection_mm": baseline_results.get('thorax_irtracc_max_deflection_proxy_mm'),
                 "femur_load_kN": baseline_results.get('femur_load_kN')
             },
             "injury_probabilities": {
                 "P_head": baseline_results.get('P_head'),
                 "P_neck": baseline_results.get('P_neck'),
-                "P_chest": baseline_results.get('P_chest'),
-                "P_femur": baseline_results.get('P_femur'),
+                "P_chest": baseline_results.get('P_thorax_AIS3plus', baseline_results.get('P_chest', 0)),
+                "P_femur": baseline_results.get('P_femur_AIS2plus_proxy', baseline_results.get('P_femur', 0)),
                 "P_baseline": baseline_results.get('P_baseline')
             }
         },

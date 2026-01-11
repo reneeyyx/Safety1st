@@ -56,22 +56,25 @@ async def search_urls(query: str) -> List[str]:
     These URLs contain real crash test data, gender-specific injury statistics,
     and safety feature effectiveness research.
     """
-    # Real crash safety data sources
+    # Real crash safety data sources (updated URLs)
     SAFETY_URLS = [
         # IIHS gender fatality statistics
-        "https://www.iihs.org/topics/fatality-statistics/detail/gender",
+        "https://www.iihs.org/research-areas/fatality-statistics/detail/males-and-females",
 
-        # NHTSA crash test ratings
-        "https://www.nhtsa.gov/ratings",
+        # IIHS general crash test info
+        "https://www.iihs.org/ratings",
 
-        # Research on female crash test dummies and injury disparities
-        "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5001799/",
+        # WHO road safety data
+        "https://www.who.int/news-room/fact-sheets/detail/road-traffic-injuries",
 
-        # IIHS frontal crash test info
-        "https://www.iihs.org/ratings/about/frontal-crash-tests",
+        # IIHS research on crash tests
+        "https://www.iihs.org/research-areas",
 
-        # IIHS side crash test info
-        "https://www.iihs.org/ratings/about/side-crash-tests",
+        # CDC motor vehicle safety
+        "https://www.cdc.gov/transportationsafety/index.html",
+
+        # IIHS pregnancy research - specific study on pregnant occupants
+        "https://www.iihs.org/research-areas/bibliography/ref/2331",
     ]
 
     return SAFETY_URLS

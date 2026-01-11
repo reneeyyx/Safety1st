@@ -3,8 +3,9 @@ import asyncio
 import sys
 import os
 
-# Add src to path
-sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
+# Add src to path so we can import modules
+src_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src')
+sys.path.insert(0, src_path)
 
 from models.carDataModel import CarParameters
 from models.dummyDataModel import DummyDetails

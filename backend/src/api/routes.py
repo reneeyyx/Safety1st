@@ -18,6 +18,7 @@ from modeling.geminiAPI import (
     format_analysis_for_response
 )
 from scraper import scrape_safety_data
+from config.settings import Config
 
 # Create Flask blueprint
 api_blueprint = Blueprint('api', __name__)
@@ -115,23 +116,29 @@ def format_response(results: Dict[str, Any]) -> Dict[str, Any]:
     Returns:
         Formatted response with structured sections
     """
+    risk_score = results["risk_score_0_100"]
+
     return {
         "success": True,
-        "risk_score": results["risk_score_0_100"],
+        "risk_score": risk_score,
+
+        # Production safety flag
+        "safe_for_production": risk_score <= Config.PRODUCTION_SAFETY_THRESHOLD,
+        "production_threshold": Config.PRODUCTION_SAFETY_THRESHOLD,
 
         "injury_criteria": {
             "HIC15": results["HIC15"],
             "Nij": results["Nij"],
             "chest_A3ms_g": results["chest_A3ms_g"],
-            "chest_deflection_mm": results["chest_deflection_mm"],
+            "chest_deflection_mm": results["thorax_irtracc_max_deflection_proxy_mm"],
             "femur_load_kN": results["femur_load_kN"]
         },
 
         "injury_probabilities": {
             "P_head": results["P_head"],
             "P_neck": results["P_neck"],
-            "P_chest": results["P_chest"],
-            "P_femur": results["P_femur"],
+            "P_chest": results.get("P_thorax_AIS3plus", results.get("P_chest", 0)),
+            "P_femur": results.get("P_femur_AIS2plus_proxy", results.get("P_femur", 0)),
             "P_baseline": results["P_baseline"]
         },
 
@@ -399,6 +406,8 @@ def test_example_crash():
             seat_recline_angle=25.0,
             seat_height_relative_to_dash=0.0,
             neck_strength="average",
+            seat_position="driver",
+            pelvis_lap_belt_fit="average",
 
             # Safety features - full protection
             seatbelt_used=True,

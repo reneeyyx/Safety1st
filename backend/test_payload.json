@@ -20,6 +20,8 @@
     "seat_distance_from_wheel_cm": 30.0,
     "seat_recline_angle_deg": 25.0,
     "seat_height_relative_to_dash_cm": 0.0,
-    "neck_strength": "average"
+    "neck_strength": "average",
+    "seat_position": "driver",
+    "pelvis_lap_belt_fit": "average"
   }
 }

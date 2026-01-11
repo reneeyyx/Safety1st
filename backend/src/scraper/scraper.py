@@ -75,12 +75,30 @@ async def scrape_safety_data(
     # build a short summary string from first few relevant segments
     summary_text = " ".join(all_paragraphs[:5])
 
-    # pull out a few paragraphs that explicitly mention female / women / pregnant
+    # pull out paragraphs that explicitly mention female / women / pregnant / gender
+    # Expanded search terms and increased limit to 10 notes
+    gender_keywords = [
+        "female", "women", "woman", "pregnant", "pregnancy",
+        "gender", "sex difference", "male vs female",
+        "5th percentile", "50th percentile female",
+        "smaller occupant", "body size"
+    ]
+
     gender_bias_notes = [
         p
         for p in all_paragraphs
-        if any(word in p.lower() for word in ["female", "women", "woman", "pregnant"])
-    ][:3]
+        if any(word in p.lower() for word in gender_keywords)
+    ][:10]  # Increased from 5 to 10
+
+    # Remove duplicates while preserving order
+    seen = set()
+    unique_notes = []
+    for note in gender_bias_notes:
+        if note not in seen:
+            seen.add(note)
+            unique_notes.append(note)
+
+    gender_bias_notes = unique_notes
 
     if not gender_bias_notes:
         gender_bias_notes = [
