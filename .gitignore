@@ -10,7 +10,6 @@ backend/src/scraper/.cache/
 # unity
 [Ll]ibrary/
 [Tt]emp/
-[Bb]uild/
 [Oo]bj/
 [Ll]ogs/
 *.unitypackage
