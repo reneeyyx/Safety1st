@@ -85,6 +85,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results }) => {
         )}
 
         {/* Baseline Injury Criteria */}
+        {results.baseline && results.baseline.injury_criteria && (
         <div className="bg-safety-black/30 rounded-lg p-6">
           <h3 className="text-xl font-bold text-safety-orange mb-4">
             Injury Criteria (Baseline Physics)
@@ -122,6 +123,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ results }) => {
             </div>
           </div>
         </div>
+        )}
 
         {/* Data Sources */}
         {results.data_sources && results.data_sources.length > 0 && (

@@ -13,7 +13,7 @@ const LoadingModal: React.FC<LoadingModalProps> = ({ isOpen }) => {
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
       {/* Modal content */}
-      <div className="relative bg-safety-gray border-2 border-safety-orange rounded-lg p-12 max-w-md w-full mx-4 shadow-2xl">
+      <div className="relative bg-safety-gray/30 border-2 border-safety-orange/50 rounded-lg p-12 max-w-md w-full mx-4 shadow-[0_0_15px_rgba(220,60,140,0.2),0_0_30px_rgba(160,80,200,0.15)] transition-all duration-300">
         <div className="text-center">
           {/* Spinning loader */}
           <div className="mx-auto mb-6">
@@ -23,7 +23,7 @@ const LoadingModal: React.FC<LoadingModalProps> = ({ isOpen }) => {
             </div>
           </div>
 
-          <h3 className="text-2xl font-bold text-safety-orange mb-3">
+          <h3 className="text-2xl font-bold mb-3 bg-gradient-to-r from-[rgba(220,60,140,0.7)] to-[rgba(160,80,200,0.7)] bg-clip-text text-transparent">
             Analyzing Crash Scenario
           </h3>
 
