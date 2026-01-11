@@ -389,7 +389,7 @@ def format_analysis_for_response(
                 "HIC15": baseline_results.get('HIC15'),
                 "Nij": baseline_results.get('Nij'),
                 "chest_A3ms_g": baseline_results.get('chest_A3ms_g'),
-                "chest_deflection_mm": baseline_results.get('thorax_irtracc_max_deflection_proxy_mm'),
+                "thorax_irtracc_max_deflection_proxy_mm": baseline_results.get('thorax_irtracc_max_deflection_proxy_mm'),
                 "femur_load_kN": baseline_results.get('femur_load_kN')
             },
             "injury_probabilities": {
