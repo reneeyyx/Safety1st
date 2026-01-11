@@ -51,8 +51,8 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ onViewSimulation }) => {
   };
 
   const getRiskLabel = (score: number) => {
-    if (score < 30) return 'Low Risk';
-    if (score < 60) return 'Moderate Risk';
+    if (score < 40) return 'Low Risk';
+    if (score < 70) return 'Moderate Risk';
     return 'High Risk';
   };
 
