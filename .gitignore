@@ -10,10 +10,13 @@ backend/src/scraper/.cache/
 # unity
 [Ll]ibrary/
 [Tt]emp/
+[Bb]uild/
 [Oo]bj/
 [Ll]ogs/
 *.unitypackage
-
+!Build/*.br
+!Build/*.js
+!Build/*.wasm
 # Byte-compiled / optimized / DLL files
 __pycache__/
 .venv/
