@@ -18,7 +18,10 @@ const AccessibilitySettings: React.FC = () => {
       {/* Accessibility Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 z-50 bg-safety-orange text-safety-black p-4 rounded-full shadow-lg hover:scale-110 transition-transform"
+        className="fixed bottom-6 right-6 z-50 p-4 rounded-full shadow-lg hover:scale-110 transition-all duration-300 glow-button"
+        style={{
+          background: 'linear-gradient(135deg, rgba(220, 60, 140, 0.9) 0%, rgba(160, 80, 200, 0.9) 100%)',
+        }}
         aria-label="Accessibility Settings"
       >
         <svg
@@ -26,6 +29,7 @@ const AccessibilitySettings: React.FC = () => {
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
+          style={{ color: '#000000' }}
         >
           <path
             strokeLinecap="round"
@@ -46,9 +50,9 @@ const AccessibilitySettings: React.FC = () => {
           />
 
           {/* Modal */}
-          <div className="relative bg-safety-gray border-2 border-safety-orange rounded-lg p-8 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+          <div className="relative bg-safety-gray/30 border-2 border-safety-orange/50 rounded-lg p-8 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto shadow-[0_0_15px_rgba(220,60,140,0.2),0_0_30px_rgba(160,80,200,0.15)] transition-all duration-300">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-safety-orange" style={{ fontFamily: 'Poppins, sans-serif' }}>
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-[rgba(220,60,140,0.7)] to-[rgba(160,80,200,0.7)] bg-clip-text text-transparent" style={{ fontFamily: 'Poppins, sans-serif' }}>
                 Accessibility Settings
               </h2>
               <button
@@ -63,7 +67,7 @@ const AccessibilitySettings: React.FC = () => {
 
             {/* Mode Selection */}
             <div className="space-y-3 mb-6">
-              <h3 className="text-lg font-semibold text-safety-orange mb-3">Display Mode</h3>
+              <h3 className="text-lg font-semibold mb-3 bg-gradient-to-r from-[rgba(220,60,140,0.5)] to-[rgba(160,80,200,0.5)] bg-clip-text text-transparent">Display Mode</h3>
               {modes.map((modeOption) => (
                 <button
                   key={modeOption.value}
@@ -99,8 +103,12 @@ const AccessibilitySettings: React.FC = () => {
             {/* Close Button */}
             <button
               onClick={() => setIsOpen(false)}
-              className="w-full mt-6 bg-safety-orange text-safety-black font-bold py-3 px-4 rounded-lg hover:bg-safety-orange-dark transition-colors"
-              style={{ fontFamily: 'Poppins, sans-serif' }}
+              className="w-full mt-6 py-4 px-6 text-lg font-bold rounded-2xl transition-all duration-300 hover:scale-105 backdrop-blur-md border border-safety-orange/30 glow-button"
+              style={{
+                background: 'radial-gradient(circle at center, rgba(220, 60, 140, 0.2) 0%, rgba(0, 0, 0, 0.8) 100%)',
+                color: 'rgba(220, 60, 140, 0.95)',
+                fontFamily: 'Poppins, sans-serif'
+              }}
             >
               Apply Settings
             </button>

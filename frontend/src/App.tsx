@@ -120,7 +120,13 @@ function App() {
                   />
 
                   {/* Title next to logo */}
-                  <h1 className="text-3xl" style={{ color: '#E5B53F', fontFamily: 'Poppins, sans-serif' }}>
+                  <h1 className="text-3xl" style={{ 
+                    background: 'linear-gradient(135deg, #FF0080 0%, #A020F0 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    fontFamily: 'Poppins, sans-serif'
+                  }}>
                     Safety1st
                   </h1>
                 </div>
@@ -161,7 +167,7 @@ function App() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   {/* Left: Unity Simulation Placeholder */}
                   <div className="order-2 lg:order-1">
-                    <div className="bg-safety-gray/30 border-2 border-safety-orange/30 rounded-lg p-8 h-[600px] flex items-center justify-center">
+                    <div className="bg-safety-gray/30 border-2 border-safety-orange/50 rounded-lg p-8 h-[600px] flex items-center justify-center shadow-[0_0_15px_rgba(220,60,140,0.2),0_0_30px_rgba(160,80,200,0.15)] hover:shadow-[0_0_20px_rgba(220,60,140,0.3),0_0_40px_rgba(160,80,200,0.2)] transition-all duration-300">
                       <div className="text-center">
                         <div className="w-24 h-24 mx-auto mb-4 border-4 border-safety-orange/50 rounded-lg flex items-center justify-center">
                           <svg
@@ -184,7 +190,7 @@ function App() {
                             />
                           </svg>
                         </div>
-                        <h3 className="text-xl font-bold text-safety-orange mb-2">
+                        <h3 className="text-xl font-bold mb-2 bg-gradient-to-r from-[rgba(220,60,140,0.7)] to-[rgba(160,80,200,0.7)] bg-clip-text text-transparent">
                           Unity Simulation
                         </h3>
                         <p className="text-safety-orange/60 text-sm">

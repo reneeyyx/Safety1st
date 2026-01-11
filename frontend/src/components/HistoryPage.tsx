@@ -83,8 +83,8 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ onViewSimulation }) => {
   if (simulations.length === 0) {
     return (
       <div className="container mx-auto px-6 py-12">
-        <div className="bg-safety-gray/30 border border-safety-orange/30 rounded-lg p-12 text-center">
-          <h2 className="text-2xl font-semibold text-safety-orange mb-4">No Simulations Yet</h2>
+        <div className="bg-safety-gray/30 border-2 border-safety-orange/50 rounded-lg p-12 text-center shadow-[0_0_15px_rgba(220,60,140,0.2),0_0_30px_rgba(160,80,200,0.15)] hover:shadow-[0_0_20px_rgba(220,60,140,0.3),0_0_40px_rgba(160,80,200,0.2)] transition-all duration-300">
+          <h2 className="text-2xl font-semibold mb-4 bg-gradient-to-r from-[rgba(220,60,140,0.7)] to-[rgba(160,80,200,0.7)] bg-clip-text text-transparent">No Simulations Yet</h2>
           <p className="text-safety-orange/70">
             Run your first crash simulation to see it appear here.
           </p>

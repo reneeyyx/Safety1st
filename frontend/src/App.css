@@ -59,34 +59,46 @@ html {
 
 /* Glow button effect */
 .glow-button:hover {
-  box-shadow: 0 0 20px rgba(229, 181, 63, 0.4),
-              0 0 40px rgba(229, 181, 63, 0.2),
-              0 0 60px rgba(229, 181, 63, 0.1);
+  box-shadow: 0 0 20px rgba(199, 91, 122, 0.4),
+              0 0 40px rgba(199, 91, 122, 0.2),
+              0 0 60px rgba(199, 91, 122, 0.1);
 }
 
 /* Custom checkbox styles */
 input[type="checkbox"] {
-  accent-color: #DAA520;
+  accent-color: #C75B7A;
   cursor: pointer;
 }
 
 input[type="checkbox"]:focus {
   ring: 2px;
-  ring-color: #DAA520;
+  ring-color: #C75B7A;
 }
 
 /* Number input arrows styling */
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
-  opacity: 1;
+  opacity: 0.6;
+}
+
+/* Select dropdown arrow styling */
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 12px 12px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 2.5rem;
 }
 
 /* ===== ACCESSIBILITY MODES ===== */
 
 /* High Contrast Mode */
 .accessibility-high-contrast {
-  --safety-orange: #FFD700;
-  --safety-orange-dark: #FFA500;
+  --safety-orange: #FF0080;
+  --safety-orange-dark: #A020F0;
   --safety-black: #000000;
   --safety-gray: #FFFFFF;
 }
@@ -106,10 +118,26 @@ input[type="number"]::-webkit-outer-spin-button {
   border: 3px solid #FFFFFF !important;
 }
 
-/* Colorblind Safe Mode - Enhances existing theme with visual indicators */
-/* Keep original orange but add borders, patterns, and ensure brightness */
+/* Colorblind Safe Mode - Uses blue/orange color scheme safe for all types of colorblindness */
+/* Designed for deuteranopia, protanopia, and tritanopia */
 .accessibility-colorblind-safe {
-  --safety-orange: #FFB84D; /* Brighter orange to avoid brown appearance */
+  --safety-orange: #0077BB; /* Blue - universally distinguishable */
+  --safety-orange-dark: #004488; /* Dark blue for accents */
+}
+
+/* Override all pink/magenta colors with colorblind-safe blue */
+.accessibility-colorblind-safe .text-safety-orange,
+.accessibility-colorblind-safe [class*="text-safety-orange"] {
+  color: #0077BB !important; /* Bright blue */
+}
+
+.accessibility-colorblind-safe .border-safety-orange,
+.accessibility-colorblind-safe [class*="border-safety-orange"] {
+  border-color: #0077BB !important;
+}
+
+.accessibility-colorblind-safe .bg-safety-orange {
+  background-color: #0077BB !important;
 }
 
 /* Add thicker borders for better distinction */
@@ -118,26 +146,28 @@ input[type="number"]::-webkit-outer-spin-button {
 .accessibility-colorblind-safe select {
   border-width: 3px !important;
   border-style: solid !important;
+  border-color: #0077BB !important;
 }
 
 /* Add visual patterns to different states */
 .accessibility-colorblind-safe button:hover,
 .accessibility-colorblind-safe button:focus {
-  outline: 3px solid #FFB84D !important;
+  outline: 3px solid #0077BB !important;
   outline-offset: 2px !important;
+  background-color: #004488 !important;
 }
 
-/* Ensure status colors are colorblind-safe */
+/* Ensure status colors are colorblind-safe using blue-orange palette */
 .accessibility-colorblind-safe .text-green-400 {
-  color: #009E73 !important; /* Green safe for colorblindness */
+  color: #0077BB !important; /* Blue for success/safe */
 }
 
 .accessibility-colorblind-safe .text-yellow-400 {
-  color: #F0E442 !important; /* Yellow safe for colorblindness */
+  color: #EE7733 !important; /* Orange for warning - distinguishable from blue */
 }
 
 .accessibility-colorblind-safe .text-red-400 {
-  color: #D55E00 !important; /* Orange-red safe for colorblindness */
+  color: #CC3311 !important; /* Red-orange for danger - high contrast */
 }
 
 /* Add underlines to links and interactive elements */
@@ -150,9 +180,33 @@ input[type="number"]::-webkit-outer-spin-button {
 
 /* Enhanced focus states with patterns */
 .accessibility-colorblind-safe *:focus-visible {
-  outline: 4px solid #FFB84D !important;
+  outline: 4px solid #0077BB !important;
   outline-offset: 3px !important;
-  box-shadow: 0 0 0 2px #000, 0 0 0 6px #FFB84D !important;
+  box-shadow: 0 0 0 2px #000, 0 0 0 6px #0077BB !important;
+}
+
+/* Override checkbox accent color */
+.accessibility-colorblind-safe input[type="checkbox"] {
+  accent-color: #0077BB !important;
+}
+
+/* Override button glow effects */
+.accessibility-colorblind-safe .glow-button:hover {
+  box-shadow: 0 0 20px rgba(0, 119, 187, 0.4),
+              0 0 40px rgba(0, 119, 187, 0.2),
+              0 0 60px rgba(0, 119, 187, 0.1) !important;
+}
+
+/* Override title colors (handles inline styles) */
+.accessibility-colorblind-safe h1,
+.accessibility-colorblind-safe h2,
+.accessibility-colorblind-safe h3 {
+  color: #0077BB !important;
+}
+
+/* Override any elements with inline color styles */
+.accessibility-colorblind-safe [style*="color"] {
+  color: #0077BB !important;
 }
 
 /* Dyslexia Friendly Mode */
@@ -227,7 +281,7 @@ input[type="number"]::-webkit-outer-spin-button {
 
 /* Focus styles for keyboard navigation (all modes) */
 *:focus-visible {
-  outline: 3px solid #DAA520 !important;
+  outline: 3px solid #C75B7A !important;
   outline-offset: 2px !important;
 }
 

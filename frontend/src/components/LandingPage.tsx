@@ -24,7 +24,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
             />
 
             {/* Title next to logo */}
-            <h1 className="text-3xl" style={{ color: '#E5B53F', fontFamily: 'Poppins, sans-serif' }}>
+            <h1 className="text-3xl" style={{ 
+              background: 'linear-gradient(135deg, #FF0080 0%, #A020F0 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              fontFamily: 'Poppins, sans-serif'
+            }}>
               Safety1st
             </h1>
           </div>
@@ -38,7 +44,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
           <h2
             className="text-6xl md:text-7xl lg:text-8xl leading-tight animate-slideUpFadeIn"
             style={{
-              color: '#e8901eff',
+              background: 'linear-gradient(135deg, #FF0080 0%, #A020F0 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
               fontFamily: 'Poppins, sans-serif',
               fontWeight: '500'
             }}
@@ -50,7 +59,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
           <p
             className="text-2xl md:text-3xl lg:text-3xl leading-relaxed animate-slideUpFadeIn"
             style={{
-              color: 'rgba(218, 165, 32, 0.6)',
+              background: 'linear-gradient(135deg, rgba(199, 91, 122, 0.65) 0%, rgba(160, 80, 200, 0.65) 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
               fontFamily: 'Poppins, sans-serif',
               fontWeight: '300',
               animationDelay: '0.2s'
@@ -65,8 +77,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
               onClick={onStart}
               className="px-12 py-5 text-lg font-medium rounded-2xl transition-all duration-300 hover:scale-105 backdrop-blur-md border border-safety-orange/30 glow-button"
               style={{
-                background: 'radial-gradient(circle at center, rgba(229, 181, 63, 0.2) 0%, rgba(0, 0, 0, 0.8) 100%)',
-                color: 'rgba(229, 181, 63, 0.95)',
+                background: 'radial-gradient(circle at center, rgba(220, 60, 140, 0.2) 0%, rgba(0, 0, 0, 0.8) 100%)',
+                color: 'rgba(220, 60, 140, 0.95)',
                 fontFamily: 'Poppins, sans-serif',
               }}
             >

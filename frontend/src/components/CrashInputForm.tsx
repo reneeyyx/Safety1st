@@ -28,7 +28,7 @@ const getDefaultValues = (gender: 'male' | 'female', isPregnant: boolean) => {
 const CrashInputForm: React.FC<CrashInputFormProps> = ({ onSubmit }) => {
   // Car parameters
   const [impactSpeed, setImpactSpeed] = useState<string>('50');
-  const [crashSide, setCrashSide] = useState<'frontal' | 'side' | 'rear'>('frontal');
+  const [crashSide, setCrashSide] = useState<'frontal' | 'left' | 'right'>('frontal');
   const [vehicleMass, setVehicleMass] = useState<string>('1500');
   const [crumpleZone, setCrumpleZone] = useState<string>('0.6');
   const [cabinRigidity, setCabinRigidity] = useState<'low' | 'medium' | 'high'>('medium');
@@ -36,6 +36,8 @@ const CrashInputForm: React.FC<CrashInputFormProps> = ({ onSubmit }) => {
   const [seatbeltLoadLimiter, setSeatbeltLoadLimiter] = useState<boolean>(true);
   const [frontAirbags, setFrontAirbags] = useState<boolean>(true);
   const [sideAirbags, setSideAirbags] = useState<boolean>(false);
+  const [frontAirbagSize, setFrontAirbagSize] = useState<string>('60'); // liters
+  const [sideAirbagSize, setSideAirbagSize] = useState<string>('12'); // liters
 
   // Dummy parameters
   const [gender, setGender] = useState<'male' | 'female'>('female');
@@ -81,22 +83,22 @@ const CrashInputForm: React.FC<CrashInputFormProps> = ({ onSubmit }) => {
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       {/* Car Parameters Section */}
-      <div className="bg-safety-gray/30 rounded-lg p-6 border border-safety-orange/30">
-        <h3 className="text-xl font-bold text-safety-orange mb-4 pb-2 border-b border-safety-orange/30">
+      <div className="bg-safety-gray/30 rounded-lg p-6 border-2 border-safety-orange/50 shadow-[0_0_15px_rgba(220,60,140,0.2),0_0_30px_rgba(160,80,200,0.15)] hover:shadow-[0_0_20px_rgba(220,60,140,0.3),0_0_40px_rgba(160,80,200,0.2)] transition-all duration-300">
+        <h3 className="text-xl font-bold mb-4 pb-2 border-b border-safety-orange/30 bg-gradient-to-r from-[rgba(220,60,140,0.7)] to-[rgba(160,80,200,0.7)] bg-clip-text text-transparent">
           Vehicle Parameters
         </h3>
 
         <div className="space-y-4">
           {/* Impact Speed */}
           <div>
-            <label className="block text-safety-orange text-sm font-semibold mb-2">
+            <label className="block text-gray-500 text-sm font-normal mb-2">
               Impact Speed (km/h) *
             </label>
             <input
               type="number"
               value={impactSpeed}
               onChange={(e) => setImpactSpeed(e.target.value)}
-              className="w-full bg-safety-black border border-safety-orange/50 rounded px-4 py-2 text-safety-orange focus:outline-none focus:border-safety-orange"
+              className="w-full bg-safety-black border border-safety-orange/50 rounded px-4 py-2 text-gray-500 focus:outline-none focus:border-safety-orange"
               required
               min="0"
               max="200"
@@ -105,24 +107,24 @@ const CrashInputForm: React.FC<CrashInputFormProps> = ({ onSubmit }) => {
 
           {/* Crash Side */}
           <div>
-            <label className="block text-safety-orange text-sm font-semibold mb-2">
+            <label className="block text-gray-500 text-sm font-normal mb-2">
               Crash Side *
             </label>
             <select
               value={crashSide}
-              onChange={(e) => setCrashSide(e.target.value as 'frontal' | 'side' | 'rear')}
-              className="w-full bg-safety-black border border-safety-orange/50 rounded px-4 py-2 text-safety-orange focus:outline-none focus:border-safety-orange"
+              onChange={(e) => setCrashSide(e.target.value as 'frontal' | 'left' | 'right')}
+              className="w-full bg-safety-black border border-safety-orange/50 rounded px-4 py-2 text-gray-500 focus:outline-none focus:border-safety-orange"
               required
             >
               <option value="frontal">Frontal</option>
-              <option value="side">Side</option>
-              <option value="rear">Rear</option>
+              <option value="left">Left</option>
+              <option value="right">Right</option>
             </select>
           </div>
 
           {/* Vehicle Mass */}
           <div>
-            <label className="block text-safety-orange text-sm font-semibold mb-2">
+            <label className="block text-gray-500 text-sm font-normal mb-2">
               Vehicle Mass (kg) *
               <span className="text-safety-orange/60 font-normal text-xs ml-2">
                 heavier → safer
@@ -132,7 +134,7 @@ const CrashInputForm: React.FC<CrashInputFormProps> = ({ onSubmit }) => {
               type="number"
               value={vehicleMass}
               onChange={(e) => setVehicleMass(e.target.value)}
-              className="w-full bg-safety-black border border-safety-orange/50 rounded px-4 py-2 text-safety-orange focus:outline-none focus:border-safety-orange"
+              className="w-full bg-safety-black border border-safety-orange/50 rounded px-4 py-2 text-gray-500 focus:outline-none focus:border-safety-orange"
               required
               min="500"
               max="5000"
@@ -141,7 +143,7 @@ const CrashInputForm: React.FC<CrashInputFormProps> = ({ onSubmit }) => {
 
           {/* Crumple Zone */}
           <div>
-            <label className="block text-safety-orange text-sm font-semibold mb-2">
+            <label className="block text-gray-500 text-sm font-normal mb-2">
               Crumple Zone Length (m)
               <span className="text-safety-orange/60 font-normal text-xs ml-2">
                 longer → lower force
@@ -152,7 +154,7 @@ const CrashInputForm: React.FC<CrashInputFormProps> = ({ onSubmit }) => {
               step="0.1"
               value={crumpleZone}
               onChange={(e) => setCrumpleZone(e.target.value)}
-              className="w-full bg-safety-black border border-safety-orange/50 rounded px-4 py-2 text-safety-orange focus:outline-none focus:border-safety-orange"
+              className="w-full bg-safety-black border border-safety-orange/50 rounded px-4 py-2 text-gray-500 focus:outline-none focus:border-safety-orange"
               min="0.1"
               max="1.0"
             />
@@ -160,7 +162,7 @@ const CrashInputForm: React.FC<CrashInputFormProps> = ({ onSubmit }) => {
 
           {/* Cabin Rigidity */}
           <div>
-            <label className="block text-safety-orange text-sm font-semibold mb-2">
+            <label className="block text-gray-500 text-sm font-normal mb-2">
               Cabin Rigidity
               <span className="text-safety-orange/60 font-normal text-xs ml-2">
                 weak cabin hurts small bodies more
@@ -169,7 +171,7 @@ const CrashInputForm: React.FC<CrashInputFormProps> = ({ onSubmit }) => {
             <select
               value={cabinRigidity}
               onChange={(e) => setCabinRigidity(e.target.value as 'low' | 'medium' | 'high')}
-              className="w-full bg-safety-black border border-safety-orange/50 rounded px-4 py-2 text-safety-orange focus:outline-none focus:border-safety-orange"
+              className="w-full bg-safety-black border border-safety-orange/50 rounded px-4 py-2 text-gray-500 focus:outline-none focus:border-safety-orange"
             >
               <option value="low">Low</option>
               <option value="medium">Medium</option>
@@ -179,71 +181,125 @@ const CrashInputForm: React.FC<CrashInputFormProps> = ({ onSubmit }) => {
 
           {/* Safety Features */}
           <div className="pt-4 border-t border-safety-orange/20">
-            <div className="font-semibold text-safety-orange mb-3 text-sm">Safety Features</div>
+            <div className="font-semibold mb-3 text-sm bg-gradient-to-r from-[rgba(220,60,140,0.7)] to-[rgba(160,80,200,0.7)] bg-clip-text text-transparent">Safety Features</div>
 
-            <div className="space-y-3">
-              <label className="flex items-center cursor-pointer group">
-                <input
-                  type="checkbox"
-                  checked={seatbeltPretensioner}
-                  onChange={(e) => setSeatbeltPretensioner(e.target.checked)}
-                  className="mr-3 w-5 h-5 text-safety-orange bg-safety-black border-safety-orange/50 rounded focus:ring-safety-orange"
-                />
-                <span className="text-safety-orange group-hover:text-safety-orange-dark transition-colors">
+            <div className="space-y-4">
+              {/* Seatbelt Pretensioner */}
+              <div>
+                <label className="block text-gray-500 text-sm font-normal mb-2">
                   Seatbelt Pretensioner
-                </span>
-              </label>
+                </label>
+                <select
+                  value={seatbeltPretensioner ? 'yes' : 'no'}
+                  onChange={(e) => setSeatbeltPretensioner(e.target.value === 'yes')}
+                  className="w-full bg-safety-black border border-safety-orange/50 rounded px-4 py-2 text-gray-500 focus:outline-none focus:border-safety-orange"
+                >
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+              </div>
 
-              <label className="flex items-center cursor-pointer group">
-                <input
-                  type="checkbox"
-                  checked={seatbeltLoadLimiter}
-                  onChange={(e) => setSeatbeltLoadLimiter(e.target.checked)}
-                  className="mr-3 w-5 h-5 text-safety-orange bg-safety-black border-safety-orange/50 rounded focus:ring-safety-orange"
-                />
-                <span className="text-safety-orange group-hover:text-safety-orange-dark transition-colors">
+              {/* Seatbelt Load Limiter */}
+              <div>
+                <label className="block text-gray-500 text-sm font-normal mb-2">
                   Seatbelt Load Limiter
-                </span>
-              </label>
+                </label>
+                <select
+                  value={seatbeltLoadLimiter ? 'yes' : 'no'}
+                  onChange={(e) => setSeatbeltLoadLimiter(e.target.value === 'yes')}
+                  className="w-full bg-safety-black border border-safety-orange/50 rounded px-4 py-2 text-gray-500 focus:outline-none focus:border-safety-orange"
+                >
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+              </div>
 
-              <label className="flex items-center cursor-pointer group">
-                <input
-                  type="checkbox"
-                  checked={frontAirbags}
-                  onChange={(e) => setFrontAirbags(e.target.checked)}
-                  className="mr-3 w-5 h-5 text-safety-orange bg-safety-black border-safety-orange/50 rounded focus:ring-safety-orange"
-                />
-                <span className="text-safety-orange group-hover:text-safety-orange-dark transition-colors">
+              {/* Front Airbags */}
+              <div>
+                <label className="block text-gray-500 text-sm font-normal mb-2">
                   Front Airbags
-                </span>
-              </label>
+                </label>
+                <select
+                  value={frontAirbags ? 'yes' : 'no'}
+                  onChange={(e) => setFrontAirbags(e.target.value === 'yes')}
+                  className="w-full bg-safety-black border border-safety-orange/50 rounded px-4 py-2 text-gray-500 focus:outline-none focus:border-safety-orange"
+                >
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+                
+                {/* Front Airbag Size - Show when Yes */}
+                {frontAirbags && (
+                  <div className="mt-3 ml-4 pl-4 border-l-2 border-safety-orange/30">
+                    <label className="block text-safety-orange/80 text-xs font-semibold mb-2">
+                      Front Airbag Size (liters)
+                    </label>
+                    <input
+                      type="number"
+                      value={frontAirbagSize}
+                      onChange={(e) => setFrontAirbagSize(e.target.value)}
+                      className="w-full bg-safety-black border border-safety-orange/50 rounded px-4 py-2 text-gray-500 focus:outline-none focus:border-safety-orange"
+                      min="30"
+                      max="100"
+                      step="5"
+                    />
+                    <div className="text-safety-orange/60 text-xs mt-1">
+                      Typical: 60-70L (driver), 50-60L (passenger)
+                    </div>
+                  </div>
+                )}
+              </div>
 
-              <label className="flex items-center cursor-pointer group">
-                <input
-                  type="checkbox"
-                  checked={sideAirbags}
-                  onChange={(e) => setSideAirbags(e.target.checked)}
-                  className="mr-3 w-5 h-5 text-safety-orange bg-safety-black border-safety-orange/50 rounded focus:ring-safety-orange"
-                />
-                <span className="text-safety-orange group-hover:text-safety-orange-dark transition-colors">
+              {/* Side Airbags */}
+              <div>
+                <label className="block text-gray-500 text-sm font-normal mb-2">
                   Side Airbags
-                </span>
-              </label>
+                </label>
+                <select
+                  value={sideAirbags ? 'yes' : 'no'}
+                  onChange={(e) => setSideAirbags(e.target.value === 'yes')}
+                  className="w-full bg-safety-black border border-safety-orange/50 rounded px-4 py-2 text-gray-500 focus:outline-none focus:border-safety-orange"
+                >
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+                
+                {/* Side Airbag Size - Show when Yes */}
+                {sideAirbags && (
+                  <div className="mt-3 ml-4 pl-4 border-l-2 border-safety-orange/30">
+                    <label className="block text-safety-orange/80 text-xs font-semibold mb-2">
+                      Side Airbag Size (liters)
+                    </label>
+                    <input
+                      type="number"
+                      value={sideAirbagSize}
+                      onChange={(e) => setSideAirbagSize(e.target.value)}
+                      className="w-full bg-safety-black border border-safety-orange/50 rounded px-4 py-2 text-gray-500 focus:outline-none focus:border-safety-orange"
+                      min="8"
+                      max="20"
+                      step="1"
+                    />
+                    <div className="text-safety-orange/60 text-xs mt-1">
+                      Typical: 10-15L (torso), 8-12L (head)
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Dummy Parameters Section */}
-      <div className="bg-safety-gray/30 rounded-lg p-6 border border-safety-orange/30">
-        <h3 className="text-xl font-bold text-safety-orange mb-4 pb-2 border-b border-safety-orange/30">
+      <div className="bg-safety-gray/30 rounded-lg p-6 border-2 border-safety-orange/50 shadow-[0_0_15px_rgba(220,60,140,0.2),0_0_30px_rgba(160,80,200,0.15)] hover:shadow-[0_0_20px_rgba(220,60,140,0.3),0_0_40px_rgba(160,80,200,0.2)] transition-all duration-300">
+        <h3 className="text-xl font-bold mb-4 pb-2 border-b border-safety-orange/30 bg-gradient-to-r from-[rgba(220,60,140,0.7)] to-[rgba(160,80,200,0.7)] bg-clip-text text-transparent">
           Occupant Parameters
         </h3>
 
         <div className="space-y-4">
           {/* Gender */}
           <div>
-            <label className="block text-safety-orange text-sm font-semibold mb-2">
+            <label className="block text-gray-500 text-sm font-normal mb-2">
               Sex *
             </label>
             <select
@@ -252,7 +308,7 @@ const CrashInputForm: React.FC<CrashInputFormProps> = ({ onSubmit }) => {
                 setGender(e.target.value as 'male' | 'female');
                 if (e.target.value === 'male') setIsPregnant(false);
               }}
-              className="w-full bg-safety-black border border-safety-orange/50 rounded px-4 py-2 text-safety-orange focus:outline-none focus:border-safety-orange"
+              className="w-full bg-safety-black border border-safety-orange/50 rounded px-4 py-2 text-gray-500 focus:outline-none focus:border-safety-orange"
               required
             >
               <option value="female">Female</option>
@@ -262,13 +318,13 @@ const CrashInputForm: React.FC<CrashInputFormProps> = ({ onSubmit }) => {
 
           {/* Seat Position */}
           <div>
-            <label className="block text-safety-orange text-sm font-semibold mb-2">
+            <label className="block text-gray-500 text-sm font-normal mb-2">
               Seat Position *
             </label>
             <select
               value={seatPosition}
               onChange={(e) => setSeatPosition(e.target.value as 'driver' | 'passenger')}
-              className="w-full bg-safety-black border border-safety-orange/50 rounded px-4 py-2 text-safety-orange focus:outline-none focus:border-safety-orange"
+              className="w-full bg-safety-black border border-safety-orange/50 rounded px-4 py-2 text-gray-500 focus:outline-none focus:border-safety-orange"
               required
             >
               <option value="driver">Driver</option>
@@ -279,26 +335,26 @@ const CrashInputForm: React.FC<CrashInputFormProps> = ({ onSubmit }) => {
           {/* Pregnancy - Only show for females */}
           {gender === 'female' && (
             <div className="pt-4 border-t border-safety-orange/20">
-              <label className="flex items-center cursor-pointer group">
-                <input
-                  type="checkbox"
-                  checked={isPregnant}
-                  onChange={(e) => setIsPregnant(e.target.checked)}
-                  className="mr-3 w-5 h-5 text-safety-orange bg-safety-black border-safety-orange/50 rounded focus:ring-safety-orange"
-                />
-                <span className="text-safety-orange group-hover:text-safety-orange-dark transition-colors font-semibold">
-                  Pregnant
-                </span>
+              <label className="block text-gray-500 text-sm font-normal mb-2">
+                Pregnant
               </label>
+              <select
+                value={isPregnant ? 'yes' : 'no'}
+                onChange={(e) => setIsPregnant(e.target.value === 'yes')}
+                className="w-full bg-safety-black border border-safety-orange/50 rounded px-4 py-2 text-gray-500 focus:outline-none focus:border-safety-orange"
+              >
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+              </select>
             </div>
           )}
 
           {/* Auto-populated values info */}
           <div className="pt-4 mt-4 border-t border-safety-orange/20 bg-safety-black/30 rounded p-4">
-            <div className="text-safety-orange/70 text-sm mb-2">
+            <div className="text-safety-orange/60 text-sm mb-2">
               Auto-populated based on selection:
             </div>
-            <div className="text-safety-orange text-sm space-y-1">
+            <div className="text-gray-500 text-sm space-y-1">
               <div>• Occupant Mass: {defaultValues.occupant_mass_kg} kg</div>
               <div>• Occupant Height: {defaultValues.occupant_height_m} m</div>
               <div>• Neck Strength: Average</div>
@@ -311,7 +367,11 @@ const CrashInputForm: React.FC<CrashInputFormProps> = ({ onSubmit }) => {
       {/* Submit Button */}
       <button
         type="submit"
-        className="w-full bg-safety-orange text-safety-black font-bold py-4 px-6 rounded-lg hover:bg-safety-orange-dark transition-colors duration-200 text-lg shadow-lg hover:shadow-xl"
+        className="w-full py-4 px-6 text-lg font-bold rounded-2xl transition-all duration-300 hover:scale-105 backdrop-blur-md border border-safety-orange/30 glow-button"
+        style={{
+          background: 'radial-gradient(circle at center, rgba(220, 60, 140, 0.2) 0%, rgba(0, 0, 0, 0.8) 100%)',
+          color: 'rgba(220, 60, 140, 0.95)'
+        }}
       >
         Calculate Risk Score
       </button>
