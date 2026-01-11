@@ -118,7 +118,7 @@ class CrashInputs:
                  # Vehicle/crash parameters
                  impact_speed: float,           # m/s
                  vehicle_mass: float,           # kg
-                 crash_side: str,               # "frontal", "side", or "rear"
+                 crash_side: str,               # "frontal", "left", or "right"
                  coefficient_restitution: float = 0.0,  # dimensionless, 0-0.3
 
                  # Occupant parameters
@@ -553,7 +553,7 @@ class BaselineRiskCalculator:
 
         if self.inputs.front_airbag and self.inputs.crash_side == "frontal":
             parts.append("front_airbag")
-        if self.inputs.side_airbag and self.inputs.crash_side == "side":
+        if self.inputs.side_airbag and self.inputs.crash_side in ["left", "right"]:
             parts.append("side_airbag")
 
         return " + ".join(parts)
@@ -747,21 +747,40 @@ class BaselineRiskCalculator:
             capacity = self.inputs.airbag_capacity_liters
             occupant_mass = self.inputs.occupant_mass
 
-            # Calculate optimal capacity for this occupant (rough heuristic)
-            # Rule: ~0.8-1.0 liters per kg of body mass for optimal protection
+            # Calculate optimal capacity for this occupant (enhanced heuristic)
+            # Rule: ~0.85-0.95 liters per kg of body mass for optimal protection
             optimal_capacity = occupant_mass * 0.9
 
             # Calculate mismatch factor
             capacity_ratio = capacity / optimal_capacity if optimal_capacity > 0 else 1.0
 
-            # Apply penalty for mismatch:
-            # - Too small (<0.7x optimal): insufficient cushioning, higher deflection
-            # - Optimal (0.7-1.3x): minimal penalty
-            # - Too large (>1.3x optimal): excessive force, higher deflection for small occupants
-            if capacity_ratio < 0.7:
-                gamma *= (1.0 + (0.7 - capacity_ratio) * 0.3)  # Up to +30% deflection
-            elif capacity_ratio > 1.3:
-                gamma *= (1.0 + (capacity_ratio - 1.3) * 0.15)  # Up to +15% deflection per 0.1x excess
+            # Apply pronounced penalty for mismatch using quadratic/cubic scaling:
+            # This makes airbag sizing differences much more visible
+            # - Too small (<0.6x optimal): severe insufficiency penalty
+            # - Near optimal (0.85-1.15x): minimal penalty zone
+            # - Too large (>1.4x optimal): excessive force penalty
+            
+            if capacity_ratio < 0.6:
+                # Too small: severe undercushioning
+                # penalty scales quadratically as we move further from 0.6
+                under_factor = 0.6 - capacity_ratio
+                gamma *= (1.0 + under_factor * 0.8)  # Up to +32% deflection at 0.2x ratio
+            elif capacity_ratio < 0.85:
+                # Below optimal: linear penalty
+                under_factor = 0.85 - capacity_ratio
+                gamma *= (1.0 + under_factor * 0.4)  # Up to +20% deflection
+            elif capacity_ratio <= 1.15:
+                # Optimal zone: minimal penalty (0-1% deflection increase)
+                gamma *= (1.0 + (capacity_ratio - 1.0) * 0.05)
+            elif capacity_ratio <= 1.4:
+                # Above optimal: increasing penalty for oversized bags
+                over_factor = capacity_ratio - 1.15
+                gamma *= (1.0 + over_factor * 0.3)  # Up to +7.5% deflection
+            else:
+                # Too large: severe oversizing penalty (excessive force)
+                # penalty scales more aggressively for very oversized bags
+                over_factor = capacity_ratio - 1.4
+                gamma *= (1.0 + 0.075 + over_factor * 0.6)  # +7.5% base + 60% per 0.1x excess
 
         # Base belt stiffness
         k_belt = DEFAULT_BELT_STIFFNESS

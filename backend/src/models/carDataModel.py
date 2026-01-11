@@ -21,9 +21,9 @@ class CarDataModel(BaseModel):
         description="Impact speed in km/h (0-200)"
     )
 
-    crash_side: Literal["frontal", "side", "rear"] = Field(
+    crash_side: Literal["frontal", "left", "right"] = Field(
         ...,
-        description="Side of crash: frontal, side, or rear"
+        description="Side of crash: frontal, left, or right"
     )
 
     # ==================== Vehicle Parameters ====================
