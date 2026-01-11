@@ -40,6 +40,14 @@ class Config:
     MIN_OCCUPANT_MASS_KG = float(os.getenv('MIN_OCCUPANT_MASS_KG', '40'))
     MAX_OCCUPANT_MASS_KG = float(os.getenv('MAX_OCCUPANT_MASS_KG', '150'))
 
+    # Production Safety Threshold
+    # Risk scores BELOW this threshold are considered safe for production
+    # Options:
+    #   30 = Conservative (premium vehicles, family cars)
+    #   40 = Moderate (industry standard - RECOMMENDED)
+    #   50 = Regulatory minimum (budget vehicles)
+    PRODUCTION_SAFETY_THRESHOLD = float(os.getenv('PRODUCTION_SAFETY_THRESHOLD', '40'))
+
     # Logging
     LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
 

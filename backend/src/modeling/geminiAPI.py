@@ -47,7 +47,7 @@ def build_gemini_prompt(
     hic15 = baseline_results.get('HIC15', 0)
     nij = baseline_results.get('Nij', 0)
     chest_a3ms = baseline_results.get('chest_A3ms_g', 0)
-    chest_deflection_mm = baseline_results.get('chest_deflection_mm', 0)
+    chest_deflection_mm = baseline_results.get('thorax_irtracc_max_deflection_proxy_mm', 0)
     femur_load_kn = baseline_results.get('femur_load_kN', 0)
     baseline_risk = baseline_results.get('risk_score_0_100', 0)
 
@@ -121,19 +121,27 @@ Your task is to analyze crash test data and provide a comprehensive risk assessm
     else:
         prompt += "\n(No external sources scraped)"
 
-    prompt += """
+    prompt += f"""
 
 ## YOUR TASK
 
 Analyze the above data and provide:
 
-1. **Final Risk Score (0-100):** Adjust the baseline risk score based on:
-   - How the actual injury criteria compare to safe thresholds
-   - Gender-specific vulnerabilities mentioned in research
-   - Pregnancy considerations if applicable
-   - Seat position (driver vs passenger affects bracing and awareness)
-   - Pelvis/lap belt fit quality (poor fit increases abdominal/femur injury risk)
-   - Any protective or risk factors from the restraint system
+1. **Final Risk Score (0-100):**
+
+   IMPORTANT: Start with the baseline risk score of **{baseline_risk:.1f}%** and make SMALL adjustments only.
+
+   The baseline is physics-based and already accurate. Your adjustments should be:
+   - **±5-15 points maximum** based on factors below
+   - INCREASE risk if: research shows higher female vulnerability, pregnancy, poor restraint fit
+   - DECREASE risk if: research shows better-than-expected outcomes, optimal restraints
+   - DO NOT completely override the baseline - it's based on validated injury criteria
+
+   Consider for adjustment:
+   - Gender-specific vulnerabilities from research (typically +5-10% for females)
+   - Pregnancy considerations (+5-15% for pregnant occupants)
+   - Seat position and belt fit quality (±5%)
+   - Research findings that contradict or support baseline assumptions
 
 2. **Confidence Level (0-100):** Rate your confidence in this assessment based on:
    - Quality and relevance of external data
@@ -176,12 +184,13 @@ Be objective, evidence-based, and cite specific injury criteria values when expl
     return prompt
 
 
-def parse_gemini_response(response_text: str) -> GeminiAnalysisResult:
+def parse_gemini_response(response_text: str, baseline_risk: float = None) -> GeminiAnalysisResult:
     """
     Parse Gemini's JSON response into a structured result object.
 
     Args:
         response_text: Raw text from Gemini API
+        baseline_risk: Optional baseline risk to validate against
 
     Returns:
         GeminiAnalysisResult object
@@ -218,8 +227,23 @@ def parse_gemini_response(response_text: str) -> GeminiAnalysisResult:
     if confidence > 1.0:
         confidence = confidence / 100.0
 
+    risk_score = float(data['risk_score'])
+
+    # Validate that Gemini didn't stray too far from baseline
+    if baseline_risk is not None:
+        max_deviation = 20.0  # Allow ±20 points max
+        if abs(risk_score - baseline_risk) > max_deviation:
+            print(f"WARNING: Gemini risk ({risk_score:.1f}) deviates >20 points from baseline ({baseline_risk:.1f})")
+            print(f"Clamping to baseline ±{max_deviation} range")
+
+            # Clamp to baseline ±20
+            if risk_score < baseline_risk - max_deviation:
+                risk_score = baseline_risk - max_deviation
+            elif risk_score > baseline_risk + max_deviation:
+                risk_score = baseline_risk + max_deviation
+
     return GeminiAnalysisResult(
-        risk_score=float(data['risk_score']),
+        risk_score=risk_score,
         confidence=confidence,
         explanation=data['explanation'],
         gender_bias_insights=data.get('gender_bias_insights', [])
@@ -244,7 +268,7 @@ async def analyze_with_gemini(
 
     Raises:
         ValueError: If API key not configured or response invalid
-        Exception: If API call fails
+        Exception: If API call fails after retries
     """
     if not Config.GEMINI_API_KEY:
         raise ValueError(
@@ -261,17 +285,70 @@ async def analyze_with_gemini(
     # Initialize model
     model = genai.GenerativeModel(model_name)
 
-    # Generate response
-    try:
-        response = model.generate_content(prompt)
-        response_text = response.text
-    except Exception as e:
-        raise Exception(f"Gemini API call failed: {e}")
+    # Generate response with retry logic for quota errors
+    import time
+    max_retries = 3
+    retry_delay = 2  # seconds
 
-    # Parse response
-    result = parse_gemini_response(response_text)
+    for attempt in range(max_retries):
+        try:
+            response = model.generate_content(prompt)
+            response_text = response.text
+            break  # Success, exit retry loop
+
+        except Exception as e:
+            error_msg = str(e)
+
+            # Check if it's a quota error
+            if "quota" in error_msg.lower() or "429" in error_msg:
+                if attempt < max_retries - 1:
+                    # Wait with exponential backoff
+                    wait_time = retry_delay * (2 ** attempt)
+                    print(f"Quota exceeded, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})...")
+                    time.sleep(wait_time)
+                    continue
+                else:
+                    # Final attempt failed, return fallback analysis
+                    print("Quota exceeded after all retries, using baseline analysis only")
+                    return _create_fallback_analysis(baseline_results)
+            else:
+                # Non-quota error, fail immediately
+                raise Exception(f"Gemini API call failed: {e}")
+
+    # Parse response with baseline validation
+    baseline_risk = baseline_results.get('risk_score_0_100', 50)
+    result = parse_gemini_response(response_text, baseline_risk=baseline_risk)
 
     return result
+
+
+def _create_fallback_analysis(baseline_results: Dict[str, Any]) -> GeminiAnalysisResult:
+    """
+    Create a fallback analysis when Gemini API is unavailable.
+    Uses baseline risk score with generic but informative explanation.
+    """
+    baseline_risk = baseline_results.get('risk_score_0_100', 50)
+
+    explanation = (
+        f"This risk assessment is based on physics-based calculations using standard "
+        f"injury criteria (HIC15, Nij, chest deflection, femur load). "
+        f"The baseline risk score of {baseline_risk:.1f}% reflects the probability "
+        f"of significant injury based on crash dynamics and occupant biomechanics. "
+        f"AI-enhanced analysis temporarily unavailable due to API limits."
+    )
+
+    gender_bias_insights = [
+        "Female occupants typically face higher injury risk due to smaller body size and different seating positions.",
+        "Crash test standards have historically used average male dummies, potentially underestimating female risk.",
+        "Pregnant occupants face additional risks to both maternal and fetal health during crashes."
+    ]
+
+    return GeminiAnalysisResult(
+        risk_score=baseline_risk,
+        confidence=0.70,  # Lower confidence without AI enhancement
+        explanation=explanation,
+        gender_bias_insights=gender_bias_insights
+    )
 
 
 def format_analysis_for_response(
@@ -290,14 +367,20 @@ def format_analysis_for_response(
     Returns:
         Dictionary ready for JSON response
     """
+    risk_score = round(result.risk_score, 1)
+
     return {
         "success": True,
 
         # Final AI-enhanced results
-        "risk_score": round(result.risk_score, 1),
+        "risk_score": risk_score,
         "confidence": round(result.confidence, 4),
         "explanation": result.explanation,
         "gender_bias_insights": result.gender_bias_insights,
+
+        # Production safety flag (based on AI-adjusted score)
+        "safe_for_production": risk_score <= Config.PRODUCTION_SAFETY_THRESHOLD,
+        "production_threshold": Config.PRODUCTION_SAFETY_THRESHOLD,
 
         # Baseline physics calculation (for transparency)
         "baseline": {
@@ -306,14 +389,14 @@ def format_analysis_for_response(
                 "HIC15": baseline_results.get('HIC15'),
                 "Nij": baseline_results.get('Nij'),
                 "chest_A3ms_g": baseline_results.get('chest_A3ms_g'),
-                "chest_deflection_mm": baseline_results.get('chest_deflection_mm'),
+                "chest_deflection_mm": baseline_results.get('thorax_irtracc_max_deflection_proxy_mm'),
                 "femur_load_kN": baseline_results.get('femur_load_kN')
             },
             "injury_probabilities": {
                 "P_head": baseline_results.get('P_head'),
                 "P_neck": baseline_results.get('P_neck'),
-                "P_chest": baseline_results.get('P_chest'),
-                "P_femur": baseline_results.get('P_femur'),
+                "P_chest": baseline_results.get('P_thorax_AIS3plus', baseline_results.get('P_chest', 0)),
+                "P_femur": baseline_results.get('P_femur_AIS2plus_proxy', baseline_results.get('P_femur', 0)),
                 "P_baseline": baseline_results.get('P_baseline')
             }
         },

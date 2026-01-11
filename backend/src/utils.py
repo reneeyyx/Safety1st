@@ -1,11 +1,12 @@
 """Simple utility functions for the backend"""
 import logging
 
-# Configure basic logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
+# Configure basic logging (only once)
+if not logging.getLogger().handlers:
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s'
+    )
 
 class Logger:
     """Simple logger wrapper"""
