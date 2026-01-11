@@ -45,8 +45,8 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ onViewSimulation }) => {
   };
 
   const getRiskColor = (score: number) => {
-    if (score < 30) return 'text-green-400';
-    if (score < 60) return 'text-yellow-400';
+    if (score < 40) return 'text-green-400';
+    if (score < 70) return 'text-yellow-400';
     return 'text-red-400';
   };
 
@@ -57,10 +57,10 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ onViewSimulation }) => {
   };
 
   const getRiskBoxStyle = (score: number) => {
-    if (score < 30) {
+    if (score < 40) {
       return 'border-2 text-green-500 shadow-[0_0_8px_rgba(0,255,0,0.3),0_0_15px_rgba(0,255,0,0.2)]';
     }
-    if (score < 60) {
+    if (score < 70) {
       return 'border-2 text-yellow-300 shadow-[0_0_8px_rgba(255,255,0,0.3),0_0_15px_rgba(255,255,0,0.2)]';
     }
     return 'border-2 text-red-500 shadow-[0_0_8px_rgba(255,0,0,0.3),0_0_15px_rgba(255,0,0,0.2)]';
@@ -155,7 +155,7 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ onViewSimulation }) => {
                   <div 
                     className={`px-4 py-1 rounded-full text-sm font-bold whitespace-nowrap mt-1 ml-2 ${getRiskBoxStyle(finalRisk)}`}
                     style={{
-                      borderColor: finalRisk < 30 ? '#00FF00' : finalRisk < 60 ? '#FFFF00' : '#FF0000'
+                      borderColor: finalRisk < 40 ? '#00FF00' : finalRisk < 70 ? '#FFFF00' : '#FF0000'
                     }}
                   >
                     {getRiskLabel(finalRisk)}
