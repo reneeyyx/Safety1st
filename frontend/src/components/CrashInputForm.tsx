@@ -181,7 +181,7 @@ const CrashInputForm: React.FC<CrashInputFormProps> = ({ onSubmit }) => {
 
           {/* Safety Features */}
           <div className="pt-4 border-t border-safety-orange/20">
-            <div className="font-semibold mb-3 text-sm bg-gradient-to-r from-[rgba(220,60,140,0.7)] to-[rgba(160,80,200,0.7)] bg-clip-text text-transparent">Safety Features</div>
+            <h3 className="text-xl font-bold mb-4 pb-2 border-b border-safety-orange/30 bg-gradient-to-r from-[rgba(220,60,140,0.7)] to-[rgba(160,80,200,0.7)] bg-clip-text text-transparent">Safety Features</h3>
 
             <div className="space-y-4">
               {/* Seatbelt Pretensioner */}

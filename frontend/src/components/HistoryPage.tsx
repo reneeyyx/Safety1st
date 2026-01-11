@@ -56,6 +56,16 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ onViewSimulation }) => {
     return 'High Risk';
   };
 
+  const getRiskBoxStyle = (score: number) => {
+    if (score < 30) {
+      return 'border-2 text-green-500 shadow-[0_0_8px_rgba(0,255,0,0.3),0_0_15px_rgba(0,255,0,0.2)]';
+    }
+    if (score < 60) {
+      return 'border-2 text-yellow-300 shadow-[0_0_8px_rgba(255,255,0,0.3),0_0_15px_rgba(255,255,0,0.2)]';
+    }
+    return 'border-2 text-red-500 shadow-[0_0_8px_rgba(255,0,0,0.3),0_0_15px_rgba(255,0,0,0.2)]';
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto px-6 py-12">
@@ -95,7 +105,7 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ onViewSimulation }) => {
 
   return (
     <div className="container mx-auto px-6 py-8">
-      <h2 className="text-3xl font-bold text-safety-orange mb-8">Simulation History</h2>
+      <h2 className="text-3xl font-bold mb-8 bg-gradient-to-r from-[rgba(220,60,140,0.7)] to-[rgba(160,80,200,0.7)] bg-clip-text text-transparent">Simulation History</h2>
 
       <div className="space-y-4">
         {simulations.map((sim) => {
@@ -124,14 +134,30 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ onViewSimulation }) => {
                 </div>
 
                 {/* Risk Score */}
-                <div className="md:col-span-1 flex flex-col justify-center">
-                  <div className="text-safety-orange/70 text-xs uppercase tracking-wider mb-1">
-                    Risk Score
+                <div className="md:col-span-1 flex items-center gap-4">
+                  <div>
+                    <div className="text-safety-orange/70 text-xs uppercase tracking-wider mb-1">
+                      Risk Score
+                    </div>
+                    <div 
+                      className="text-4xl font-bold"
+                      style={{
+                        background: 'linear-gradient(135deg, #FF9999 0%, #DC3C8C 100%)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        backgroundClip: 'text',
+                        filter: 'drop-shadow(0 0 4px rgba(255, 153, 153, 0.2)) drop-shadow(0 0 8px rgba(220, 60, 140, 0.15))'
+                      }}
+                    >
+                      {finalRisk.toFixed(1)}
+                    </div>
                   </div>
-                  <div className={`text-3xl font-bold ${getRiskColor(finalRisk)}`}>
-                    {finalRisk.toFixed(1)}
-                  </div>
-                  <div className="text-sm text-safety-orange/80">
+                  <div 
+                    className={`px-4 py-1 rounded-full text-sm font-bold whitespace-nowrap mt-1 ml-2 ${getRiskBoxStyle(finalRisk)}`}
+                    style={{
+                      borderColor: finalRisk < 30 ? '#00FF00' : finalRisk < 60 ? '#FFFF00' : '#FF0000'
+                    }}
+                  >
                     {getRiskLabel(finalRisk)}
                   </div>
                 </div>
@@ -156,25 +182,25 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ onViewSimulation }) => {
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div>
                       <span className="text-safety-orange/60">HIC15:</span>{' '}
-                      <span className="text-safety-orange font-medium">
+                      <span className="text-gray-500 font-medium">
                         {sim.baseline?.HIC15?.toFixed(0) || 'N/A'}
                       </span>
                     </div>
                     <div>
                       <span className="text-safety-orange/60">Nij:</span>{' '}
-                      <span className="text-safety-orange font-medium">
+                      <span className="text-gray-500 font-medium">
                         {sim.baseline?.Nij?.toFixed(2) || 'N/A'}
                       </span>
                     </div>
                     <div>
                       <span className="text-safety-orange/60">Chest:</span>{' '}
-                      <span className="text-safety-orange font-medium">
+                      <span className="text-gray-500 font-medium">
                         {sim.baseline?.chest_A3ms_g?.toFixed(0) || 'N/A'}g
                       </span>
                     </div>
                     <div>
                       <span className="text-safety-orange/60">Femur:</span>{' '}
-                      <span className="text-safety-orange font-medium">
+                      <span className="text-gray-500 font-medium">
                         {sim.baseline?.femur_load_kN?.toFixed(1) || 'N/A'}kN
                       </span>
                     </div>
@@ -185,7 +211,7 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ onViewSimulation }) => {
               {/* AI Explanation (if available) */}
               {sim.gemini_analysis?.explanation && (
                 <div className="mt-4 pt-4 border-t border-safety-orange/20">
-                  <p className="text-safety-orange/80 text-sm line-clamp-2">
+                  <p className="text-gray-500 text-sm line-clamp-2">
                     {sim.gemini_analysis.explanation}
                   </p>
                 </div>
