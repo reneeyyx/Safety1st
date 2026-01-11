@@ -80,3 +80,165 @@ input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
   opacity: 1;
 }
+
+/* ===== ACCESSIBILITY MODES ===== */
+
+/* High Contrast Mode */
+.accessibility-high-contrast {
+  --safety-orange: #FFD700;
+  --safety-orange-dark: #FFA500;
+  --safety-black: #000000;
+  --safety-gray: #FFFFFF;
+}
+
+.accessibility-high-contrast body {
+  background: #000000 !important;
+  color: #FFFFFF !important;
+}
+
+.accessibility-high-contrast * {
+  border-color: #FFFFFF !important;
+}
+
+.accessibility-high-contrast button,
+.accessibility-high-contrast input,
+.accessibility-high-contrast select {
+  border: 3px solid #FFFFFF !important;
+}
+
+/* Colorblind Safe Mode - Enhances existing theme with visual indicators */
+/* Keep original orange but add borders, patterns, and ensure brightness */
+.accessibility-colorblind-safe {
+  --safety-orange: #FFB84D; /* Brighter orange to avoid brown appearance */
+}
+
+/* Add thicker borders for better distinction */
+.accessibility-colorblind-safe button,
+.accessibility-colorblind-safe input,
+.accessibility-colorblind-safe select {
+  border-width: 3px !important;
+  border-style: solid !important;
+}
+
+/* Add visual patterns to different states */
+.accessibility-colorblind-safe button:hover,
+.accessibility-colorblind-safe button:focus {
+  outline: 3px solid #FFB84D !important;
+  outline-offset: 2px !important;
+}
+
+/* Ensure status colors are colorblind-safe */
+.accessibility-colorblind-safe .text-green-400 {
+  color: #009E73 !important; /* Green safe for colorblindness */
+}
+
+.accessibility-colorblind-safe .text-yellow-400 {
+  color: #F0E442 !important; /* Yellow safe for colorblindness */
+}
+
+.accessibility-colorblind-safe .text-red-400 {
+  color: #D55E00 !important; /* Orange-red safe for colorblindness */
+}
+
+/* Add underlines to links and interactive elements */
+.accessibility-colorblind-safe a,
+.accessibility-colorblind-safe button {
+  text-decoration: underline !important;
+  text-decoration-thickness: 2px !important;
+  text-underline-offset: 3px !important;
+}
+
+/* Enhanced focus states with patterns */
+.accessibility-colorblind-safe *:focus-visible {
+  outline: 4px solid #FFB84D !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 2px #000, 0 0 0 6px #FFB84D !important;
+}
+
+/* Dyslexia Friendly Mode */
+.accessibility-dyslexia-friendly * {
+  font-family: 'OpenDyslexic', 'Comic Sans MS', Arial, sans-serif !important;
+  letter-spacing: 0.05em !important;
+  line-height: 1.8 !important;
+  word-spacing: 0.16em !important;
+}
+
+.accessibility-dyslexia-friendly h1,
+.accessibility-dyslexia-friendly h2,
+.accessibility-dyslexia-friendly h3,
+.accessibility-dyslexia-friendly h4,
+.accessibility-dyslexia-friendly h5,
+.accessibility-dyslexia-friendly h6 {
+  font-weight: 700 !important;
+  margin-bottom: 0.8em !important;
+}
+
+.accessibility-dyslexia-friendly p {
+  margin-bottom: 1em !important;
+}
+
+/* Large Text Mode */
+.accessibility-large-text {
+  font-size: 18px;
+}
+
+.accessibility-large-text p,
+.accessibility-large-text span,
+.accessibility-large-text div,
+.accessibility-large-text label,
+.accessibility-large-text li {
+  font-size: 1.2rem !important;
+  line-height: 1.6 !important;
+}
+
+.accessibility-large-text h1 {
+  font-size: 2.5rem !important;
+}
+
+.accessibility-large-text h2 {
+  font-size: 2rem !important;
+}
+
+.accessibility-large-text h3 {
+  font-size: 1.75rem !important;
+}
+
+.accessibility-large-text button {
+  font-size: 1.1rem !important;
+  padding: 0.75rem 1.25rem !important;
+}
+
+.accessibility-large-text input,
+.accessibility-large-text select,
+.accessibility-large-text textarea {
+  font-size: 1.1rem !important;
+  padding: 0.75rem !important;
+}
+
+/* Reduced Motion */
+.reduced-motion *,
+.reduced-motion *::before,
+.reduced-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Focus styles for keyboard navigation (all modes) */
+*:focus-visible {
+  outline: 3px solid #DAA520 !important;
+  outline-offset: 2px !important;
+}
+
+/* Improved button states for accessibility */
+button:hover,
+button:focus {
+  transform: scale(1.05);
+  transition: transform 0.2s ease;
+}
+
+.reduced-motion button:hover,
+.reduced-motion button:focus {
+  transform: none !important;
+}

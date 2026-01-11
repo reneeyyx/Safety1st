@@ -5,6 +5,8 @@ import LoadingModal from './components/LoadingModal';
 import ResultsDisplay from './components/ResultsDisplay';
 import LandingPage from './components/LandingPage';
 import HistoryPage from './components/HistoryPage';
+import AccessibilitySettings from './components/AccessibilitySettings';
+import { AccessibilityProvider } from './contexts/AccessibilityContext';
 import { evaluateCrashRisk } from './api/crashRiskApi';
 import type { CarData, DummyData, CrashRiskResponse } from './types';
 import './App.css';
@@ -85,7 +87,7 @@ function App() {
   };
 
   return (
-    <>
+    <AccessibilityProvider>
       {showLanding ? (
         <div
           className={`transition-all duration-700 ease-in-out ${
@@ -222,7 +224,10 @@ function App() {
           <LoadingModal isOpen={isLoading} />
         </div>
       )}
-    </>
+
+      {/* Accessibility Settings - Always Available */}
+      {!showLanding && <AccessibilitySettings />}
+    </AccessibilityProvider>
   );
 }
 
