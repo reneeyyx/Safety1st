@@ -421,7 +421,7 @@ The web scraper dynamically fetches research from:
 ### Backend `.env`
 ```env
 GEMINI_API_KEY=your_gemini_api_key
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/safety1st
+MONGODB_URI=your_mongodb_uri
 FLASK_ENV=development
 PRODUCTION_SAFETY_THRESHOLD=40
 ```
