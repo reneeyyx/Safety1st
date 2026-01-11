@@ -3,6 +3,7 @@ import type { CarData, DummyData } from '../types';
 
 interface CrashInputFormProps {
   onSubmit: (carData: CarData, dummyData: DummyData) => void;
+  onFormChange?: (carData: Partial<CarData>, dummyData: Partial<DummyData>) => void;
 }
 
 // Default values based on gender
@@ -25,7 +26,7 @@ const getDefaultValues = (gender: 'male' | 'female', isPregnant: boolean) => {
   };
 };
 
-const CrashInputForm: React.FC<CrashInputFormProps> = ({ onSubmit }) => {
+const CrashInputForm: React.FC<CrashInputFormProps> = ({ onSubmit, onFormChange }) => {
   // Car parameters
   const [impactSpeed, setImpactSpeed] = useState<string>('50');
   const [crashSide, setCrashSide] = useState<'frontal' | 'left' | 'right'>('frontal');
@@ -112,7 +113,11 @@ const CrashInputForm: React.FC<CrashInputFormProps> = ({ onSubmit }) => {
             </label>
             <select
               value={crashSide}
-              onChange={(e) => setCrashSide(e.target.value as 'frontal' | 'left' | 'right')}
+              onChange={(e) => {
+                const newCrashSide = e.target.value as 'frontal' | 'left' | 'right';
+                setCrashSide(newCrashSide);
+                onFormChange?.({ crash_side: newCrashSide }, {});
+              }}
               className="w-full bg-safety-black border border-safety-orange/50 rounded px-4 py-2 text-gray-500 focus:outline-none focus:border-safety-orange"
               required
             >
@@ -305,8 +310,10 @@ const CrashInputForm: React.FC<CrashInputFormProps> = ({ onSubmit }) => {
             <select
               value={gender}
               onChange={(e) => {
-                setGender(e.target.value as 'male' | 'female');
-                if (e.target.value === 'male') setIsPregnant(false);
+                const newGender = e.target.value as 'male' | 'female';
+                setGender(newGender);
+                if (newGender === 'male') setIsPregnant(false);
+                onFormChange?.({}, { gender: newGender });
               }}
               className="w-full bg-safety-black border border-safety-orange/50 rounded px-4 py-2 text-gray-500 focus:outline-none focus:border-safety-orange"
               required
@@ -340,7 +347,11 @@ const CrashInputForm: React.FC<CrashInputFormProps> = ({ onSubmit }) => {
               </label>
               <select
                 value={isPregnant ? 'yes' : 'no'}
-                onChange={(e) => setIsPregnant(e.target.value === 'yes')}
+                onChange={(e) => {
+                  const newIsPregnant = e.target.value === 'yes';
+                  setIsPregnant(newIsPregnant);
+                  onFormChange?.({}, { is_pregnant: newIsPregnant });
+                }}
                 className="w-full bg-safety-black border border-safety-orange/50 rounded px-4 py-2 text-gray-500 focus:outline-none focus:border-safety-orange"
               >
                 <option value="no">No</option>

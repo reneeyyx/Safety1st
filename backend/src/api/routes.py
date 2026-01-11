@@ -130,7 +130,7 @@ def format_response(results: Dict[str, Any]) -> Dict[str, Any]:
             "HIC15": results["HIC15"],
             "Nij": results["Nij"],
             "chest_A3ms_g": results["chest_A3ms_g"],
-            "chest_deflection_mm": results["thorax_irtracc_max_deflection_proxy_mm"],
+            "thorax_irtracc_max_deflection_proxy_mm": results["thorax_irtracc_max_deflection_proxy_mm"],
             "femur_load_kN": results["femur_load_kN"]
         },
 

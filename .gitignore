@@ -2,19 +2,21 @@
 node_modules/
 .env
 dist/
-build/
 
 # scraper cache
 backend/src/scraper/.cache/
 
-# unity
+# Unity project files (NOT WebGL builds in frontend/public/)
+# These ignore Unity editor files but allow WebGL Build folders
 [Ll]ibrary/
 [Tt]emp/
-[Bb]uild/
 [Oo]bj/
 [Ll]ogs/
 *.unitypackage
 
+# Ignore build folders EXCEPT in frontend/public/ (where Unity WebGL builds live)
+build/
+!frontend/public/*/Build/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 .venv/
@@ -26,7 +28,6 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-build/
 develop-eggs/
 dist/
 downloads/

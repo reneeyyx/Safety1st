@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import CrashInputForm from './components/CrashInputForm';
+import UnitySimulation from './components/UnitySimulation';
 import ErrorModal from './components/ErrorModal';
 import LoadingModal from './components/LoadingModal';
 import ResultsDisplay from './components/ResultsDisplay';
@@ -21,6 +22,11 @@ function App() {
   const [errors, setErrors] = useState<string[]>([]);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [results, setResults] = useState<CrashRiskResponse | null>(null);
+
+  // Track current form values for Unity simulation display
+  const [currentGender, setCurrentGender] = useState<'male' | 'female'>('female');
+  const [currentCrashSide, setCurrentCrashSide] = useState<'frontal' | 'left' | 'right'>('frontal');
+  const [currentIsPregnant, setCurrentIsPregnant] = useState<boolean>(false);
 
   const validateInputs = (carData: CarData, dummyData: DummyData): string[] => {
     const errors: string[] = [];
@@ -56,6 +62,19 @@ function App() {
     setIsTransitioning(false);
   };
 
+  const handleFormChange = (carData: Partial<CarData>, dummyData: Partial<DummyData>) => {
+    // Update simulation display when form values change
+    if (dummyData.gender) {
+      setCurrentGender(dummyData.gender);
+    }
+    if (carData.crash_side) {
+      setCurrentCrashSide(carData.crash_side);
+    }
+    if (dummyData.is_pregnant !== undefined) {
+      setCurrentIsPregnant(dummyData.is_pregnant);
+    }
+  };
+
   const handleSubmit = async (carData: CarData, dummyData: DummyData) => {
     // Validate inputs
     const validationErrors = validateInputs(carData, dummyData);
@@ -64,6 +83,11 @@ function App() {
       setShowErrorModal(true);
       return;
     }
+
+    // Update simulation display
+    setCurrentGender(dummyData.gender);
+    setCurrentCrashSide(carData.crash_side);
+    setCurrentIsPregnant(dummyData.is_pregnant);
 
     // Clear previous results
     setResults(null);
@@ -165,44 +189,27 @@ function App() {
             {currentPage === 'home' ? (
               <>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {/* Left: Unity Simulation Placeholder */}
+                  {/* Left: Unity Simulation */}
                   <div className="order-2 lg:order-1">
-                    <div className="bg-safety-gray/30 border-2 border-safety-orange/50 rounded-lg p-8 h-[600px] flex items-center justify-center shadow-[0_0_15px_rgba(220,60,140,0.2),0_0_30px_rgba(160,80,200,0.15)] hover:shadow-[0_0_20px_rgba(220,60,140,0.3),0_0_40px_rgba(160,80,200,0.2)] transition-all duration-300">
-                      <div className="text-center">
-                        <div className="w-24 h-24 mx-auto mb-4 border-4 border-safety-orange/50 rounded-lg flex items-center justify-center">
-                          <svg
-                            className="w-12 h-12 text-safety-orange/50"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-                            />
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                          </svg>
-                        </div>
-                        <h3 className="text-xl font-bold mb-2 bg-gradient-to-r from-[rgba(220,60,140,0.7)] to-[rgba(160,80,200,0.7)] bg-clip-text text-transparent">
-                          Unity Simulation
-                        </h3>
-                        <p className="text-safety-orange/60 text-sm">
-                          3D crash visualization will appear here
-                        </p>
+                    <div>
+                      <UnitySimulation
+                        gender={currentGender}
+                        crashSide={currentCrashSide}
+                        isPregnant={currentIsPregnant}
+                      />
+                      {/* Instructions Below Simulation */}
+                      <div className="mt-4 bg-gradient-to-r from-[rgba(220,60,140,0.7)] to-[rgba(160,80,200,0.7)] bg-clip-text text-transparent" style={{ fontSize: '18px', fontWeight: '600', fontFamily: 'Poppins, sans-serif' }}>
+                        Click in to the simulator to start! Press the spacebar to simulate the crash, and the 'R' key to reset the simulation.
                       </div>
                     </div>
                   </div>
 
                   {/* Right: Input Form */}
                   <div className="order-1 lg:order-2">
-                    <CrashInputForm onSubmit={handleSubmit} />
+                    <CrashInputForm
+                      onSubmit={handleSubmit}
+                      onFormChange={handleFormChange}
+                    />
                   </div>
                 </div>
 
