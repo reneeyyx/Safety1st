@@ -3,13 +3,14 @@ import React, { useEffect, useRef, useState } from 'react';
 interface UnitySimulationProps {
   gender: 'male' | 'female';
   crashSide: 'frontal' | 'left' | 'right';
+  isPregnant?: boolean;
 }
 
 /**
  * Maps simulation parameters to available Unity build paths
  * Returns null if no simulation available for the given parameters
  */
-const getSimulationPath = (gender: 'male' | 'female', crashSide: 'frontal' | 'left' | 'right'): string | null => {
+const getSimulationPath = (gender: 'male' | 'female', crashSide: 'frontal' | 'left' | 'right', isPregnant: boolean = false): string | null => {
   // Map of available simulations
   // Add new simulations here as they become available
   const simulationMap: Record<string, string> = {
@@ -23,23 +24,28 @@ const getSimulationPath = (gender: 'male' | 'female', crashSide: 'frontal' | 'le
     'female_left': '/left_woman/index.html',
     'female_right': '/right_woman/index.html',
 
-    // Pregnant female simulations (to be added - uncomment when available)
-    // Note: You may want to track pregnancy status separately if these need different models
-    // 'pregnant_frontal': '/front_pregnant/index.html',
-    // 'pregnant_left': '/left_pregnant/index.html',
-    // 'pregnant_right': '/right_pregnant/index.html',
+    // Pregnant female simulations (now available)
+    'pregnant_frontal': '/front_pregnant_woman/index.html',
+    'pregnant_left': '/left_pregnant_woman/index.html',
+    'pregnant_right': '/right_pregnant_woman/index.html',
   };
+
+  // If female and pregnant, use pregnant prefix
+  if (gender === 'female' && isPregnant) {
+    const key = `pregnant_${crashSide}`;
+    return simulationMap[key] || null;
+  }
 
   const key = `${gender}_${crashSide}`;
   return simulationMap[key] || null;
 };
 
-const UnitySimulation: React.FC<UnitySimulationProps> = ({ gender, crashSide }) => {
+const UnitySimulation: React.FC<UnitySimulationProps> = ({ gender, crashSide, isPregnant = false }) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const simulationPath = getSimulationPath(gender, crashSide);
+  const simulationPath = getSimulationPath(gender, crashSide, isPregnant);
 
   useEffect(() => {
     setIsLoading(true);
@@ -56,7 +62,7 @@ const UnitySimulation: React.FC<UnitySimulationProps> = ({ gender, crashSide }) 
     if (iframeRef.current) {
       iframeRef.current.src = simulationPath;
     }
-  }, [gender, crashSide, simulationPath]);
+  }, [gender, crashSide, isPregnant, simulationPath]);
 
   const handleIframeLoad = () => {
     setIsLoading(false);
@@ -140,7 +146,7 @@ const UnitySimulation: React.FC<UnitySimulationProps> = ({ gender, crashSide }) 
       {/* Unity Simulation Label */}
       <div className="absolute top-4 left-4 z-20 bg-safety-black/70 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-safety-orange/30">
         <p className="text-xs text-safety-orange/80 font-medium">
-          {gender.charAt(0).toUpperCase() + gender.slice(1)} {crashSide.charAt(0).toUpperCase() + crashSide.slice(1)} Crash
+          {gender.charAt(0).toUpperCase() + gender.slice(1)}{isPregnant && gender === 'female' ? ' (Pregnant)' : ''} {crashSide.charAt(0).toUpperCase() + crashSide.slice(1)} Crash
         </p>
       </div>
 

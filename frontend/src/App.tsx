@@ -26,6 +26,7 @@ function App() {
   // Track current form values for Unity simulation display
   const [currentGender, setCurrentGender] = useState<'male' | 'female'>('female');
   const [currentCrashSide, setCurrentCrashSide] = useState<'frontal' | 'left' | 'right'>('frontal');
+  const [currentIsPregnant, setCurrentIsPregnant] = useState<boolean>(false);
 
   const validateInputs = (carData: CarData, dummyData: DummyData): string[] => {
     const errors: string[] = [];
@@ -69,6 +70,9 @@ function App() {
     if (carData.crash_side) {
       setCurrentCrashSide(carData.crash_side);
     }
+    if (dummyData.is_pregnant !== undefined) {
+      setCurrentIsPregnant(dummyData.is_pregnant);
+    }
   };
 
   const handleSubmit = async (carData: CarData, dummyData: DummyData) => {
@@ -83,6 +87,7 @@ function App() {
     // Update simulation display
     setCurrentGender(dummyData.gender);
     setCurrentCrashSide(carData.crash_side);
+    setCurrentIsPregnant(dummyData.is_pregnant);
 
     // Clear previous results
     setResults(null);
@@ -190,10 +195,11 @@ function App() {
                       <UnitySimulation
                         gender={currentGender}
                         crashSide={currentCrashSide}
+                        isPregnant={currentIsPregnant}
                       />
                       {/* Instructions Below Simulation */}
                       <div className="mt-4 bg-gradient-to-r from-[rgba(220,60,140,0.7)] to-[rgba(160,80,200,0.7)] bg-clip-text text-transparent" style={{ fontSize: '18px', fontWeight: '600', fontFamily: 'Poppins, sans-serif' }}>
-                        Click in to the simulator to start! Press the spacebar to simulate the crash, and the 'r' key to reset the simulation.
+                        Click in to the simulator to start! Press the spacebar to simulate the crash, and the 'R' key to reset the simulation.
                       </div>
                     </div>
                   </div>

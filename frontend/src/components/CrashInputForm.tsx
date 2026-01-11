@@ -347,7 +347,11 @@ const CrashInputForm: React.FC<CrashInputFormProps> = ({ onSubmit, onFormChange 
               </label>
               <select
                 value={isPregnant ? 'yes' : 'no'}
-                onChange={(e) => setIsPregnant(e.target.value === 'yes')}
+                onChange={(e) => {
+                  const newIsPregnant = e.target.value === 'yes';
+                  setIsPregnant(newIsPregnant);
+                  onFormChange?.({}, { is_pregnant: newIsPregnant });
+                }}
                 className="w-full bg-safety-black border border-safety-orange/50 rounded px-4 py-2 text-gray-500 focus:outline-none focus:border-safety-orange"
               >
                 <option value="no">No</option>
